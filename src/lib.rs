@@ -1,6 +1,6 @@
 //#![doc = include_str!("../Readme.md")]
 
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 use file_parser::parse_schemas;
 use generated_schema::namespace::NamespaceInfo;
 
@@ -54,19 +54,26 @@ impl Avrogen{
         }
     }
 
-    // For builder syntax, allow to specify source
-    // example of usage `builder.source(["folder1/*.avsc","folder2/**/*.avsc"]);`
-    pub fn source(mut self,mut file_patterns: Vec<String>) -> Self
+    // For builder syntax, allow to append multiple sources
+    // example of usage `builder.add_sources(vec!["folder1/*.avsc".to_string(),"folder2/**/*.avsc".to_string()]);`
+    pub fn add_sources(mut self,mut file_patterns: Vec<String>) -> Self
     {
-        self.source.append(&mut file_patterns);
+        self.source.append( &mut file_patterns );
         self
     }
 
-    // For builder syntax, allow to specify default namespace (or module in Rust)
-    // example of usage `builder.default_namespace(["com.monsite"]);`
-    pub fn default_namespace(mut self,default_namespace: &String) -> Self
+    // For builder syntax, allow to add a source
+    // example of usage `builder.add_source("folder1/*.avsc");`
+    pub fn add_source(mut self,file_pattern: &str) -> Self
     {
-        self.default_namespace=Some(default_namespace.to_owned());
+        self.source.push(file_pattern.to_string());
+        self
+    }
+    // For builder syntax, allow to specify default namespace (or module in Rust)
+    // example of usage `builder.default_namespace("com.monsite");`
+    pub fn default_namespace(mut self,default_namespace: &str) -> Self
+    {
+        self.default_namespace=Some(default_namespace.to_string());
         self
     }
 
@@ -78,6 +85,55 @@ impl Avrogen{
         self
     }
 
+    // For builder syntax, allow to specify output folder
+    // example of usage `builder.output_folder_from_str("MyFolder");`
+    pub fn output_folder_from_str(mut self,output_folder: &str) -> Self
+    {
+        // Unwrap error because seems to be infaillible
+        self.output_folder= PathBuf::from_str(output_folder).unwrap();
+        self
+    }
+
+    // For builder syntax, allow to specify verbosity to Off
+    // example of usage `builder.set_verbosity_off();
+    pub fn set_verbosity_off(mut self) -> Self
+    {
+        self.log_level =  Some(LevelFilter::Off);
+        self
+    }
+
+    // For builder syntax, allow to specify verbosity to Debug
+    // example of usage `builder.set_verbosity_debug();
+    pub fn set_verbosity_debug(mut self) -> Self
+    {
+        self.log_level =  Some(LevelFilter::Debug);
+        self
+    }
+
+    // For builder syntax, allow to specify verbosity to Information
+    // example of usage `builder.set_verbosity_info();
+    pub fn set_verbosity_info(mut self) -> Self
+    {
+        self.log_level =  Some(LevelFilter::Info);
+        self
+    }
+
+    // For builder syntax, allow to specify verbosity to Warning
+    // example of usage `builder.set_verbosity_warn();
+    pub fn set_verbosity_warn(mut self) -> Self
+    {
+        self.log_level =  Some(LevelFilter::Warn);
+        self
+    }
+
+    // For builder syntax, allow to specify verbosity to Error
+    // example of usage `builder.set_verbosity_error();
+    pub fn set_verbosity_error(mut self) -> Self
+    {
+        self.log_level =  Some(LevelFilter::Error);
+        self
+    }
+
     // For builder syntax, allow to specify verbosity
     // example of usage `builder.verbosity(log::LevelFilter::Error);
     pub fn verbosity(mut self,level_filter: log::LevelFilter) -> Self
@@ -86,7 +142,7 @@ impl Avrogen{
         self
     }
 
-    pub fn log_level(&self) -> LevelFilter
+    fn log_level(&self) -> LevelFilter
     {
         if let Some(x) = self.log_level {
             return x;
@@ -94,6 +150,7 @@ impl Avrogen{
         self.verbose.log_level_filter()
     }
 
+    // Execute the generation of Rust files with configuration selected.
     pub fn execute(self) -> Result<()>
     {
         let mut builder= colog::basic_builder();
