@@ -1,4 +1,4 @@
-//#![doc = include_str!("../Readme.md")]
+#![doc = include_str!("../Readme.md")]
 
 use std::{path::PathBuf, str::FromStr};
 use file_parser::parse_schemas;
@@ -17,9 +17,20 @@ mod writers;
 mod error;
 
 
-/// This program allow allow to generate rust code from avro definition files.
-/// 
-/// The code generated can be in a modul hierarchy and in the future we will generate a single file module structure.
+/// The Avrogen stucture is the main part of the utility.
+/// You need to create an instance of this object and execute it to generate rust files from your avsc files
+/// # example
+/// ```
+/// let builder=avrogen::Avrogen::new()
+///          .add_source("schemas/*")
+///          .default_namespace("schemas")
+///          .output_folder_from_str("src/")
+///          .execute();
+/// ```
+
+// This program allow allow to generate rust code from avro definition files.
+// 
+// The code generated can be in a modul hierarchy and in the future we will generate a single file module structure.
 #[derive(Debug, Parser)]
 #[command(version)]
 pub struct Avrogen {
@@ -28,22 +39,28 @@ pub struct Avrogen {
     /// 
     /// The source use glob format, you can use multiple source arguments. For simple search: ./MyFolder/*.avsc. For recursive search: ./MyFolder/**/*.avsc
     #[arg(short='s', long, num_args=..)]
-    pub source: Vec<String>,
+    source: Vec<String>,
 
     /// Allow to define a default namespace for generated code. All namespace generated will be in this default namespace.
     #[arg(short='n', long, aliases=&["namespace", "default_namespace", "default-namespace"])]
-    pub default_namespace: Option<String>,
+    default_namespace: Option<String>,
 
     #[arg(long, short='o', default_value="./", aliases=&["output-folder","outputfolder"])]
-    pub output_folder: PathBuf,
+    output_folder: PathBuf,
 
     #[command(flatten)]
-    pub verbose: Verbosity,
+    verbose: Verbosity,
 
     log_level: Option<LevelFilter>,
 }
 
 impl Avrogen{
+    /// Create a new Avrogen instance
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.add_source("folder/*").execute();
+    /// ```
     pub fn new() -> Self{
         Avrogen{
             source:vec![], 
@@ -54,39 +71,59 @@ impl Avrogen{
         }
     }
 
-    // For builder syntax, allow to append multiple sources
-    // example of usage `builder.add_sources(vec!["folder1/*.avsc".to_string(),"folder2/**/*.avsc".to_string()]);`
+    /// For builder syntax, allow to append multiple sources
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.add_sources(vec!["folder1/*.avsc".to_string(),"folder2/**/*.avsc".to_string()]);
+    /// ```
     pub fn add_sources(mut self,mut file_patterns: Vec<String>) -> Self
     {
         self.source.append( &mut file_patterns );
         self
     }
 
-    // For builder syntax, allow to add a source
-    // example of usage `builder.add_source("folder1/*.avsc");`
+    /// For builder syntax, allow to add a source
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.add_source("folder1/*.avsc");
+    /// ```
     pub fn add_source(mut self,file_pattern: &str) -> Self
     {
         self.source.push(file_pattern.to_string());
         self
     }
-    // For builder syntax, allow to specify default namespace (or module in Rust)
-    // example of usage `builder.default_namespace("com.monsite");`
+    /// For builder syntax, allow to specify default namespace (or module in Rust)
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.default_namespace("com.monsite");
+    /// ```
     pub fn default_namespace(mut self,default_namespace: &str) -> Self
     {
         self.default_namespace=Some(default_namespace.to_string());
         self
     }
 
-    // For builder syntax, allow to specify output folder
-    // example of usage `builder.output_folder(PathBuf::from("MyFolder"));`
+    /// For builder syntax, allow to specify output folder
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.output_folder(std::path::PathBuf::from("MyFolder"));
+    /// ```
     pub fn output_folder(mut self,output_folder: PathBuf) -> Self
     {
         self.output_folder=output_folder;
         self
     }
 
-    // For builder syntax, allow to specify output folder
-    // example of usage `builder.output_folder_from_str("MyFolder");`
+    /// For builder syntax, allow to specify output folder
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.output_folder_from_str("MyFolder");
+    /// ```
     pub fn output_folder_from_str(mut self,output_folder: &str) -> Self
     {
         // Unwrap error because seems to be infaillible
@@ -94,48 +131,72 @@ impl Avrogen{
         self
     }
 
-    // For builder syntax, allow to specify verbosity to Off
-    // example of usage `builder.set_verbosity_off();
+    /// For builder syntax, allow to specify verbosity to Off
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.set_verbosity_off();
+    /// ```
     pub fn set_verbosity_off(mut self) -> Self
     {
         self.log_level =  Some(LevelFilter::Off);
         self
     }
 
-    // For builder syntax, allow to specify verbosity to Debug
-    // example of usage `builder.set_verbosity_debug();
+    /// For builder syntax, allow to specify verbosity to Debug
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.set_verbosity_debug();
+    /// ```
     pub fn set_verbosity_debug(mut self) -> Self
     {
         self.log_level =  Some(LevelFilter::Debug);
         self
     }
 
-    // For builder syntax, allow to specify verbosity to Information
-    // example of usage `builder.set_verbosity_info();
+    /// For builder syntax, allow to specify verbosity to Information
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.set_verbosity_info();
+    /// ```
     pub fn set_verbosity_info(mut self) -> Self
     {
         self.log_level =  Some(LevelFilter::Info);
         self
     }
 
-    // For builder syntax, allow to specify verbosity to Warning
-    // example of usage `builder.set_verbosity_warn();
+    /// For builder syntax, allow to specify verbosity to Warning
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.set_verbosity_warn();
+    /// ```
     pub fn set_verbosity_warn(mut self) -> Self
     {
         self.log_level =  Some(LevelFilter::Warn);
         self
     }
 
-    // For builder syntax, allow to specify verbosity to Error
-    // example of usage `builder.set_verbosity_error();
+    /// For builder syntax, allow to specify verbosity to Error
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.set_verbosity_error();
+    /// ```
     pub fn set_verbosity_error(mut self) -> Self
     {
         self.log_level =  Some(LevelFilter::Error);
         self
     }
 
-    // For builder syntax, allow to specify verbosity
-    // example of usage `builder.verbosity(log::LevelFilter::Error);
+    /// For builder syntax, allow to specify verbosity
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.verbosity(log::LevelFilter::Error);
+    /// ```
     pub fn verbosity(mut self,level_filter: log::LevelFilter) -> Self
     {
         self.log_level =  Some(level_filter);
@@ -150,7 +211,12 @@ impl Avrogen{
         self.verbose.log_level_filter()
     }
 
-    // Execute the generation of Rust files with configuration selected.
+    /// For builder syntax, allow to specify verbosity
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.add_source("folder/*").execute();
+    /// ```
     pub fn execute(self) -> Result<()>
     {
         let mut builder= colog::basic_builder();
