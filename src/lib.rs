@@ -6,7 +6,7 @@ use generated_schema::namespace::NamespaceInfo;
 
 use clap::Parser;
 use clap_verbosity::Verbosity;
-use log::{debug, info};
+use log::{debug, info, LevelFilter};
 use crate::error::Result;
 
 mod generated_schema;
@@ -39,6 +39,8 @@ pub struct Avrogen {
 
     #[command(flatten)]
     pub verbose: Verbosity,
+
+    log_level: Option<LevelFilter>,
 }
 
 impl Avrogen{
@@ -48,6 +50,7 @@ impl Avrogen{
             default_namespace:None,
             output_folder: PathBuf::from("./"),
             verbose: Verbosity::default(),
+            log_level: None,
         }
     }
 
@@ -76,17 +79,25 @@ impl Avrogen{
     }
 
     // For builder syntax, allow to specify verbosity
-    // example of usage `builder.verbosity(Verbosity::default());`
-    pub fn verbosity(mut self,verbosity: Verbosity) -> Self
+    // example of usage `builder.verbosity(log::LevelFilter::Error);
+    pub fn verbosity(mut self,level_filter: log::LevelFilter) -> Self
     {
-        self.verbose=verbosity;
+        self.log_level =  Some(level_filter);
         self
+    }
+
+    pub fn log_level(&self) -> LevelFilter
+    {
+        if let Some(x) = self.log_level {
+            return x;
+        }
+        self.verbose.log_level_filter()
     }
 
     pub fn execute(self) -> Result<()>
     {
         let mut builder= colog::basic_builder();
-        builder.filter(None,self.verbose.log_level_filter());
+        builder.filter(None,self.log_level());
 
         builder.init();
 
