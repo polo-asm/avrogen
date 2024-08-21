@@ -8,7 +8,7 @@ To do that you need to add the crate to your build dependencies in the `Cargo.to
 avrogen = "0.1.3" # Update if needed
 ```
 Then you need to add a `build.rs` file with this kind of content:
-```
+```rust
 use avrogen::Avrogen;
 
 fn main(){
