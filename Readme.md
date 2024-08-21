@@ -1,6 +1,6 @@
 # Avrogen software
 
-## About
+## Standalone usage
 
 `avrogen --help` show you this help:
 ```
@@ -8,7 +8,7 @@ This program allow allow to generate rust code from avro definition files.
 
 The code generated can be in a modul hierarchy and in the future we will generate a single file module structure.
 
-Usage: avrogen.exe [OPTIONS]
+Usage: avrogen [OPTIONS]
 
 Options:
   -s, --source [<SOURCE>...]
@@ -34,17 +34,45 @@ Options:
   -V, --version
           Print version
 ```
-## Features
+
+## Build script usage
+If you are not familiar with build scripts you can read the [rust documentation about build scripts](https://doc.rust-lang.org/cargo/reference/build-scripts.html)
+
+You can use this crate to generate files in your rust project.
+To do that you need to add the crate to your build dependencies in the `Cargo.toml` file.
+```
+[build-dependencies]
+avrogen = "0.1.3" # Update if needed
+```
+Then you need to add a `build.rs` file with this kind of content:
+```
+use avrogen::Avrogen;
+
+fn main(){
+
+    let builder= Avrogen::new()
+        .source("Schemas/*.avsc")
+        .output_folder_from_str("src/");
+
+    builder.execute().expect("Impossible to generate rust files from avsc files");
+
+    println!("cargo::rerun-if-changed=Schemas/");
+}
+```
+You can also generate the classes in your target folder using OUT_DIR environment variable.
+
+
+# Features
 
 This tool generate rust modules and classes from asvc files.
 
-### Namespaces
+## Namespaces
 
 The tool generate the same module structure than the namespace in the avsc files. This allow to have multiple types with the same 
 
 We can add a default namespace (module structue). This allow to generate all code in a SubNamespace.
 
-### Naming conventions
+## Naming conventions
 
 Even if your asvc don't follow the rust naming conventions, the tool will generate files with good naming conventions.
 - modules use `snake_case`
@@ -55,16 +83,16 @@ If a field/struct/module use a Rust reserved keyword a prefix will be added.
 
 Some attributes are added to do the mapping between the asvc name and the sanitized name in the rust code.
 
-### Dates 
+## Dates 
 This tool generate date fields which use `chrono` crate. Ensure that you have added this crate in your project with the command `cargo add chrono -F serde`
 
-### Guids 
+## Guids 
 This tool generate Guid fields which use `uuid` crate. Ensure that you have added this crate in your project with the command `cargo add uuid`
 
-## limitations
+# limitations
 
-- [] Multiple union are not well managed.
-- [] Flatten the namespace structure if you don't want to have a module structure
-- [] Dates without chrono
-- [] Save to one file only
-- [] Save to stdout
+- [ ] Multiple union are not well managed.
+- [ ] Flatten the namespace structure if you don't want to have a module structure
+- [ ] Dates without chrono
+- [ ] Save to one file only
+- [ ] Save to stdout
