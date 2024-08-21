@@ -1,4 +1,4 @@
-#![doc = include_str!("../Readme.md")]
+//#![doc = include_str!("../Readme.md")]
 
 use std::path::PathBuf;
 use file_parser::parse_schemas;
