@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use std::path::PathBuf;
 use file_parser::parse_schemas;
 use generated_schema::namespace::NamespaceInfo;
@@ -5,14 +7,14 @@ use generated_schema::namespace::NamespaceInfo;
 use clap::Parser;
 use clap_verbosity::Verbosity;
 use log::{debug, info};
-pub use crate::error::Result;
+use crate::error::Result;
 
 mod generated_schema;
 mod file_parser;
 mod browse_sub_schemas;
 mod source;
 mod writers;
-pub mod error;
+mod error;
 
 
 /// This program allow allow to generate rust code from avro definition files.
