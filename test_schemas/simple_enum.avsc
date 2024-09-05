@@ -1,0 +1,7 @@
+{
+  "type": "enum",
+  "namespace": "geo",
+  "name": "CardinalPoints",
+  "doc": "Indicate the direction on the compass.",
+  "symbols": ["North", "South", "East", "West"]
+}
