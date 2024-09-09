@@ -18,7 +18,7 @@ pub struct User {
     #[serde(rename = "SomeInteger")]
     #[serde(default = "User::default_some_integer")]
     pub some_integer: Vec<i32>,
-    pub map_of_f64: std::collections::HashMap<String,f64>,
+    pub map_of_f64: std::collections::HashMap<String, f64>,
 }
 
 impl User {

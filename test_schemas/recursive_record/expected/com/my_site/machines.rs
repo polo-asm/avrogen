@@ -45,7 +45,6 @@ pub enum OverrideMode {
     Free,
 }
 
-
 #[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]
 #[serde(default)]
 pub struct Parameter {

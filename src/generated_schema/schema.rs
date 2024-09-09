@@ -133,7 +133,7 @@ impl GeneratedEnum {
             }
             writeln!(content_string, "    {},", record_name.sanitized_name)?;
         }
-        write!(content_string, "}}\r\n\r\n\r\n")?;
+        write!(content_string, "}}\r\n\r\n")?;
 
         Ok(content_string)
     }
