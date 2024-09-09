@@ -47,16 +47,18 @@ fn browse_folder(path: &str) -> HashMap<PathBuf, PathBuf> {
 }
 
 fn compare_files_content(first_file_path: PathBuf, second_file_path: PathBuf) {
-    let first_file = fs::read(first_file_path.to_owned())
+    let first_file = fs::read_to_string(first_file_path.to_owned())
         .expect(format!("impossible to read {:?}", first_file_path).as_str());
-    let second_file = fs::read(second_file_path.to_owned())
+    let second_file = fs::read_to_string(second_file_path.to_owned())
         .expect(format!("impossible to read {:?}", second_file_path).as_str());
 
-    for content in first_file.into_iter().zip(second_file) {
-        if content.0 != content.1 {
+    for (idx, content) in first_file.lines().zip(second_file.lines()).enumerate() {
+        if content.0.ne(content.1) {
             panic!(
-                "{:?} and {:?} are different",
-                first_file_path, second_file_path
+                "{:?} and {:?} are different at line {}",
+                first_file_path,
+                second_file_path,
+                idx + 1
             );
         }
     }
