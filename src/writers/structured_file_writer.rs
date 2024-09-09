@@ -58,11 +58,17 @@ fn create_current_file(namespace: &NamespaceInfo, file_path: PathBuf) -> Result<
         .truncate(true)
         .open(file_path)?;
 
-    for (_, child) in namespace.children.iter() {
-        file.write(format!("pub mod {};\r\n", child.name.sanitized_name.to_string()).as_bytes())?;
-    }
+    if !namespace.children.is_empty() {
+        for (_, child) in namespace.children.iter() {
+            write!(
+                file,
+                "pub mod {};\r\n",
+                child.name.sanitized_name.to_string()
+            )?;
+        }
 
-    file.write("\r\n\r\n".as_bytes())?;
+        file.write("\r\n\r\n".as_bytes())?;
+    }
 
     for (_, content) in namespace.generated_types.iter().sorted_by_key(|p| p.0) {
         file.write(content.produce_content()?.as_bytes())?;
