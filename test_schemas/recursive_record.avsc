@@ -1,0 +1,183 @@
+{
+  "type": "record",
+  "name": "Machine",
+  "namespace": "com.MySite.Machines",
+  "fields": [
+    {
+      "name": "MachineName",
+      "type": "string",
+      "doc": "Name of the machine, should not be null"
+    },
+    {
+      "name": "MachineIdentifier",
+      "type": "int",
+      "doc": "technical identifier of the machine, should not be null"
+    },
+    {
+      "name": "UpdateDate",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-micros"
+      },
+      "doc": "Date of the last update of this machine"
+    },
+    {
+      "name": "Content",
+      "type": {
+        "type": "record",
+        "name": "MachineContent",
+        "fields": [
+          {
+            "name": "Description",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          {
+            "name": "Length",
+            "type":  [
+              "null",
+              {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 20,
+                "scale": 6
+              }
+            ]
+          },
+          {
+            "name": "Width",
+            "type":  [
+              "null",
+              {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 20,
+                "scale": 6
+              }
+            ]
+          },
+          {
+            "name": "Height",
+            "type":  [
+              "null",
+              {
+                "type": "bytes",
+                "logicalType": "decimal",
+                "precision": 20,
+                "scale": 6
+              }
+            ]
+          },
+          {
+            "name": "Parameters",
+            "type": [
+              "null",
+              {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "Parameter",
+                  "fields": [
+                    {
+                      "name": "Tag",
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    {
+                      "name": "Name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Identifier",
+                      "type": "int",
+                      "doc": "Parameter technical identfier"
+                    },
+                    {
+                      "name": "UnitOfMeasurement",
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    {
+                      "name": "Value",
+                      "type": [
+                        "null",
+                        "double"
+                      ],
+                      "doc": "Contains the value of the parameter in double type"
+                    },
+                    {
+                      "name": "OverrideMode",
+                      "type": {
+                        "type": "enum",
+                        "name": "OverrideMode",
+                        "symbols": [
+                          "Locked",
+                          "WithPermission",
+                          "Free"
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Subsets",
+            "type": [
+              "null",
+              {
+                "type": "array",
+                "items": {
+                  "type": "record",
+                  "name": "Subset",
+                  "fields": [
+                    {
+                      "name": "Name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Identifier",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "doc": "Technical identifier, unique in the structure of the machine."
+                    },
+                    {
+                      "name": "Parameters",
+                      "type": [
+                        "null",
+                        {
+                          "type": "array",
+                          "items": "Parameter"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Subsets",
+                      "type": [
+                        "null",
+                        {
+                          "type": "array",
+                          "items": "Subset"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "doc": "Content is null when the machine structure has not been validated"
+    }
+  ]
+}

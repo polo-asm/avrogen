@@ -27,3 +27,8 @@ fn convert_simple_enum() {
 fn convert_simple_record() {
     standard_test("simple_record");
 }
+
+#[test]
+fn convert_recursive_record() {
+    standard_test("recursive_record");
+}
