@@ -62,7 +62,7 @@ impl GeneratedStructFields {
         if let Some(_) = self.default {
             writeln!(
                 content,
-                "    #[serde(default=\"{}::default_{}\")]",
+                "    #[serde(default = \"{}::default_{}\")]",
                 self.parent_struct_fullname, self.name.sanitized_name
             )?;
         }
