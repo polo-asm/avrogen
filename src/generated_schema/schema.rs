@@ -68,8 +68,6 @@ impl GeneratedStruct {
         write!(content_string, "impl {} {{", self.name.sanitized_name)?;
 
         if self.fields.iter().any(|f| f.has_default()) {
-            writeln!(content_string)?; // Add line break
-
             for field in self.fields.iter() {
                 let field_default_method = field.write_struct_default_method_content()?;
                 if let Some(field_default_method) = field_default_method {

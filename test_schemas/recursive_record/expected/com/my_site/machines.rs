@@ -70,7 +70,6 @@ impl Parameter {
     pub fn default_unit_of_measurement() -> Option<String> {
         None
     }
-
 }
 
 #[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]

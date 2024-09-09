@@ -51,6 +51,5 @@ impl User {
     pub fn default_some_integer() -> Vec<i32> {
         vec![12, -1]
     }
-
 }
 
