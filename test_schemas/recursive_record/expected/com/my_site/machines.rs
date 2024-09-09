@@ -18,8 +18,7 @@ pub struct Machine {
     pub content: crate::com::my_site::machines::MachineContent,
 }
 
-impl Machine {
-}
+impl Machine {}
 
 #[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]
 #[serde(default)]
@@ -38,8 +37,7 @@ pub struct MachineContent {
     pub subsets: Option<Vec<crate::com::my_site::machines::Subset>>,
 }
 
-impl MachineContent {
-}
+impl MachineContent {}
 
 #[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]
 pub enum OverrideMode {
@@ -90,6 +88,5 @@ pub struct Subset {
     pub subsets: Option<Vec<crate::com::my_site::machines::Subset>>,
 }
 
-impl Subset {
-}
+impl Subset {}
 

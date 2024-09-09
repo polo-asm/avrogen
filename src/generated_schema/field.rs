@@ -20,6 +20,13 @@ pub struct GeneratedStructFields {
 }
 
 impl GeneratedStructFields {
+    pub fn has_default(&self) -> bool {
+        match self.default {
+            None => false,
+            Some(_) => true,
+        }
+    }
+
     pub fn from(
         field: &RecordField,
         structure_name: &SanitizedName,
