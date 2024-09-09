@@ -47,13 +47,13 @@ impl GeneratedStruct {
         let mut content_string = self.schema_doc.to_owned();
         writeln!(
             content_string,
-            "#[derive(Debug,PartialEq,Clone, serde::Deserialize, serde::Serialize, Default)]"
+            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]"
         )?;
         writeln!(content_string, "#[serde(default)]")?;
         if self.name.is_sanitized {
             writeln!(
                 content_string,
-                "#[serde(rename=\"{}\")]",
+                "#[serde(rename = \"{}\")]",
                 self.name.original_name
             )?
         }
@@ -95,12 +95,13 @@ impl GeneratedEnum {
         let mut content_string = self.schema_doc.to_owned();
         writeln!(
             content_string,
-            "#[derive(Debug,PartialEq,Clone, serde::Deserialize, serde::Serialize, Default)]")?;
+            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]"
+        )?;
 
         if self.name.is_sanitized {
             writeln!(
                 content_string,
-                "#[serde(rename=\"{}\")]",
+                "#[serde(rename = \"{}\")]",
                 self.name.original_name
             )?
         }
@@ -119,9 +120,12 @@ impl GeneratedEnum {
 
             let record_name = SanitizedName::from_type(enum_record);
 
-            if record_name.is_sanitized 
-            {
-                writeln!(content_string,"    #[serde(rename=\"{}\")]",record_name.original_name)?
+            if record_name.is_sanitized {
+                writeln!(
+                    content_string,
+                    "    #[serde(rename = \"{}\")]",
+                    record_name.original_name
+                )?
             }
             writeln!(content_string, "    {},", record_name.sanitized_name)?;
         }
@@ -132,9 +136,14 @@ impl GeneratedEnum {
 }
 
 impl GeneratedType {
-    pub fn generate_schema_struct(schema: &Schema,default_namespace: &Option<String>) -> Result<GeneratedType> {
+    pub fn generate_schema_struct(
+        schema: &Schema,
+        default_namespace: &Option<String>,
+    ) -> Result<GeneratedType> {
         match schema {
-            Schema::Record(i) => Self::treat_record_schema(i,default_namespace).map(|x| GeneratedType::Struct(x)),
+            Schema::Record(i) => {
+                Self::treat_record_schema(i, default_namespace).map(|x| GeneratedType::Struct(x))
+            }
             Schema::Array(_) => todo!(),
             Schema::Map(_) => todo!(),
             Schema::Union(_) => todo!(),
@@ -166,7 +175,10 @@ impl GeneratedType {
         })
     }
 
-    pub fn treat_record_schema(record_schema: &RecordSchema,default_namespace: &Option<String>) -> Result<GeneratedStruct> {
+    pub fn treat_record_schema(
+        record_schema: &RecordSchema,
+        default_namespace: &Option<String>,
+    ) -> Result<GeneratedStruct> {
         let schema_name = SanitizedName::from_type(&record_schema.name.name);
 
         let schema_doc = format_doc(&record_schema.doc, "")?;
@@ -174,7 +186,7 @@ impl GeneratedType {
         let fields: Result<Vec<GeneratedStructFields>> = record_schema
             .fields
             .iter()
-            .map(|f| GeneratedStructFields::from(f, &schema_name,default_namespace))
+            .map(|f| GeneratedStructFields::from(f, &schema_name, default_namespace))
             .into_iter()
             .collect();
 

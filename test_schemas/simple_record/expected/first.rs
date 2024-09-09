@@ -1,11 +1,11 @@
 
 
-#[derive(Debug,PartialEq,Clone, serde::Deserialize, serde::Serialize, Default)]
+#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]
 #[serde(default)]
 pub struct User {
-    #[serde(rename="as")]
+    #[serde(rename = "as")]
     pub field_as: String,
-    #[serde(rename="favoriteNumber")]
+    #[serde(rename = "favoriteNumber")]
     #[serde(default="User::default_favorite_number")]
     pub favorite_number: i32,
     #[serde(default="User::default_likes_pizza")]
@@ -14,10 +14,10 @@ pub struct User {
     pub b: Vec<u8>,
     #[serde(default="User::default_union_b")]
     pub union_b: Option<Vec<u8>>,
-    #[serde(rename="A_Bool")]
+    #[serde(rename = "A_Bool")]
     #[serde(default="User::default_a_bool")]
     pub a_bool: Vec<bool>,
-    #[serde(rename="SomeInteger")]
+    #[serde(rename = "SomeInteger")]
     #[serde(default="User::default_some_integer")]
     pub some_integer: Vec<i32>,
     pub map_of_f64: std::collections::HashMap<String,f64>,
