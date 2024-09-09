@@ -23,22 +23,34 @@ pub struct User {
 
 impl User {
     #[inline(always)]
-    pub fn default_favorite_number() -> i32 { 7 }
+    pub fn default_favorite_number() -> i32 {
+        7
+    }
 
     #[inline(always)]
-    pub fn default_likes_pizza() -> bool { false }
+    pub fn default_likes_pizza() -> bool {
+        false
+    }
 
     #[inline(always)]
-    pub fn default_b() -> Vec<u8> { "ÿ".to_string() }
+    pub fn default_b() -> Vec<u8> {
+        "ÿ".to_string()
+    }
 
     #[inline(always)]
-    pub fn default_union_b() -> Option<Vec<u8>> { None }
+    pub fn default_union_b() -> Option<Vec<u8>> {
+        None
+    }
 
     #[inline(always)]
-    pub fn default_a_bool() -> Vec<bool> { vec![true, false] }
+    pub fn default_a_bool() -> Vec<bool> {
+        vec![true, false]
+    }
 
     #[inline(always)]
-    pub fn default_some_integer() -> Vec<i32> { vec![12, -1] }
+    pub fn default_some_integer() -> Vec<i32> {
+        vec![12, -1]
+    }
 
 }
 

@@ -67,7 +67,9 @@ pub struct Parameter {
 
 impl Parameter {
     #[inline(always)]
-    pub fn default_unit_of_measurement() -> Option<String> { None }
+    pub fn default_unit_of_measurement() -> Option<String> {
+        None
+    }
 
 }
 
