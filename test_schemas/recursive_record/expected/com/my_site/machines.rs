@@ -61,6 +61,7 @@ pub struct Parameter {
     #[serde(rename="Identifier")]
     pub identifier: i32,
     #[serde(rename="UnitOfMeasurement")]
+    #[serde(default="Parameter::default_unit_of_measurement")]
     pub unit_of_measurement: Option<String>,
     /// Contains the value of the parameter in double type
     #[serde(rename="Value")]
@@ -70,6 +71,9 @@ pub struct Parameter {
 }
 
 impl Parameter {
+    #[inline(always)]
+    pub fn default_unit_of_measurement() -> Option<String> { None }
+
 }
 
 #[derive(Debug,PartialEq,Clone, serde::Deserialize, serde::Serialize, Default)]
