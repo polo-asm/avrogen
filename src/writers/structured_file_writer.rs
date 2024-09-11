@@ -67,7 +67,7 @@ fn create_current_file(namespace: &NamespaceInfo, file_path: PathBuf) -> Result<
             )?;
         }
 
-        file.write("\r\n\r\n".as_bytes())?;
+        file.write("\r\n".as_bytes())?;
     }
 
     for (_, content) in namespace.generated_types.iter().sorted_by_key(|p| p.0) {
