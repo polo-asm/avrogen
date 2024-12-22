@@ -16,5 +16,5 @@ pub fn parse_schemas(files: Vec<AvroFile>) -> Result<Vec<Schema>>
         schema_list.push(schema)
     }
 
-    return Ok(schema_list);
+    Ok(schema_list)
 }

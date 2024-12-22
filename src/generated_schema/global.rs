@@ -1,7 +1,7 @@
 use crate::Result;
 use std::fmt::Write;
 
-pub const RESERVED_NAMES: &'static [&str] = &[
+pub const RESERVED_NAMES: &[&str] = &[
   "as",
   "use",
   "extern crate",
@@ -98,7 +98,7 @@ impl SanitizedName{
     {
         let mut sanitized_name = apply_fn(original_name);
 
-        if RESERVED_NAMES.iter().any(|s| s.to_string()  == sanitized_name) {
+        if RESERVED_NAMES.iter().any(|s| *s == sanitized_name) {
             sanitized_name = format!("{}{}",reserved_name_prefix,sanitized_name);
         }
         

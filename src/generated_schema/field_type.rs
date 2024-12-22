@@ -6,7 +6,7 @@ use super::global::SanitizedName;
 pub fn is_nullable(schema: &Schema) -> bool {
     match schema {
         Schema::Null => true,
-        Schema::Union(union_schema) => union_schema.variants().iter().any(|x| is_nullable(x)),
+        Schema::Union(union_schema) => union_schema.variants().iter().any( is_nullable),
         _ => false,
     }
 }
@@ -38,7 +38,7 @@ pub fn get_field_type(schema: &Schema, default_namespace: &Option<String>) -> Re
         Schema::LocalTimestampMillis => Ok("chrono::NaiveDateTime".to_string()),
         Schema::LocalTimestampMicros => Ok("chrono::NaiveDateTime".to_string()),
         Schema::Duration => Ok("apache_avro::Duration".to_string()),
-        Schema::Ref { name: ref_name } => sanitize_container_name(&ref_name, default_namespace),
+        Schema::Ref { name: ref_name } => sanitize_container_name(ref_name, default_namespace),
     }
 }
 
@@ -47,12 +47,14 @@ fn get_field_type_array(
     default_namespace: &Option<String>,
 ) -> Result<String> {
     let items_type = get_field_type(items_schema, default_namespace)?;
-    return Ok(format!("Vec<{}>", items_type));
+    
+    Ok(format!("Vec<{}>", items_type))
 }
 
 fn get_field_type_map(items_schema: &Schema, default_namespace: &Option<String>) -> Result<String> {
     let items_type = get_field_type(items_schema, default_namespace)?;
-    return Ok(format!("std::collections::HashMap<String, {}>", items_type));
+    
+    Ok(format!("std::collections::HashMap<String, {}>", items_type))
 }
 
 pub fn sanitize_container_name(
@@ -115,5 +117,5 @@ pub fn get_field_type_union(
         };
     }
 
-    return Ok("Union(X) ???".to_string());
+    Ok("Union(X) ???".to_string())
 }

@@ -19,15 +19,14 @@ pub fn read_files(source: Vec<String>)-> Result<Vec<AvroFile>>
                     .iter()
                     .map(|s|
                         glob(s.as_ref())
-                        .map_err(|e|crate::error::AvrogenError::GlobPattern(e))
+                        .map_err(crate::error::AvrogenError::GlobPattern)
                     )
                     .collect();
 
     let file_contents: Result<Vec<AvroFile>>=all_paths?
                 .into_iter()
                 .flat_map(|f| f.filter_map(glob::GlobResult::ok))
-                .map(|f| read_file(f))
-                .into_iter()
+                .map(read_file)
                 .collect();
     
     file_contents
@@ -48,7 +47,7 @@ pub fn read_files(source: Vec<String>)-> Result<Vec<AvroFile>>
 
     log::debug!("Reading file {}",file_path.display());
     
-     let file_content=fs::read_to_string(file_path.to_owned())?;
+     let file_content=fs::read_to_string(&file_path)?;
 
      Ok(AvroFile{content: file_content, file_path: file_path.display().to_string()})
 }

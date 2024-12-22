@@ -109,7 +109,7 @@ impl GeneratedEnum {
         }
         writeln!(content_string, "pub enum {} {{", self.name.sanitized_name)?;
 
-        if let None = self.default_record {
+        if  self.default_record.is_none() {
             writeln!(content_string, "    #[default]")?;
         }
 
@@ -144,13 +144,13 @@ impl GeneratedType {
     ) -> Result<GeneratedType> {
         match schema {
             Schema::Record(i) => {
-                Self::treat_record_schema(i, default_namespace).map(|x| GeneratedType::Struct(x))
+                Self::treat_record_schema(i, default_namespace).map(GeneratedType::Struct)
             }
             Schema::Array(_) => todo!(),
             Schema::Map(_) => todo!(),
             Schema::Union(_) => todo!(),
             Schema::Enum(enum_schema) => {
-                Self::treat_enum_schema(enum_schema).map(|x| GeneratedType::Enum(x))
+                Self::treat_enum_schema(enum_schema).map(GeneratedType::Enum)
             }
             Schema::Fixed(_) => todo!(),
             Schema::Decimal(_) => todo!(),
@@ -189,7 +189,6 @@ impl GeneratedType {
             .fields
             .iter()
             .map(|f| GeneratedStructFields::from(f, &schema_name, default_namespace))
-            .into_iter()
             .collect();
 
         Ok(GeneratedStruct {

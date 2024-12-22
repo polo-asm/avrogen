@@ -21,7 +21,7 @@ impl NamespaceInfo
     {
         NamespaceInfo{ 
             is_root: true,
-            name: SanitizedName::from_module(&"".to_string()),
+            name: SanitizedName::from_module(""),
             children: HashMap::new(),
             generated_types: HashMap::new(),
             default_namespace:default_namespace.clone()
@@ -30,7 +30,7 @@ impl NamespaceInfo
     
     fn new(parent: &NamespaceInfo, ns_begining: &str) -> Self {
         NamespaceInfo{ 
-            name: SanitizedName::from_module(&ns_begining), 
+            name: SanitizedName::from_module(ns_begining), 
             children: HashMap::new(),
             is_root: false,
             generated_types: HashMap::new(),
@@ -52,7 +52,7 @@ impl NamespaceInfo
 
      fn child_process_schema(&mut self,schema: &Schema,sub_schema_path: String )-> Result<()>
      {
-        if sub_schema_path == ""
+        if sub_schema_path.is_empty()
         {
             return self.real_process(schema);
         }
@@ -62,7 +62,7 @@ impl NamespaceInfo
         match self.children.get_mut(ns_begining){
             Some(child) => child.child_process_schema(schema, ns_endsection.to_string()),
             None => {
-                let mut new_ns = NamespaceInfo::new(&self,ns_begining);
+                let mut new_ns = NamespaceInfo::new(self,ns_begining);
 
                 debug!("New namespace: {:?}", new_ns.name.sanitized_name);
 

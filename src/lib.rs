@@ -52,6 +52,12 @@ pub struct Avrogen {
     log_level: Option<LevelFilter>,
 }
 
+impl Default for Avrogen {
+    fn default() -> Self {
+        Avrogen::new()
+    }
+}
+
 impl Avrogen {
     /// Create a new Avrogen instance
     /// # example
@@ -225,7 +231,7 @@ impl Avrogen {
             root_schemas.len()
         );
 
-        let root_schemas = root_schemas.iter().map(|s| s).collect();
+        let root_schemas = root_schemas.iter().collect();
 
         let all_schemas = browse_sub_schemas::all_schemas_to_generate(root_schemas);
 

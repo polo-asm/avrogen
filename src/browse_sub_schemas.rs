@@ -5,8 +5,7 @@ pub fn all_schemas_to_generate(root_schemas: Vec<&Schema>) -> Vec<&Schema>
 {
     let sub_schemas: Vec<&Schema> = root_schemas
         .iter()
-        .map(|s| schemas_to_generate(s))
-        .flat_map(|s|s)
+        .flat_map(|s| schemas_to_generate(s))
         .collect();
 
     root_schemas
@@ -36,8 +35,7 @@ pub fn schemas_to_generate_union(schema: &UnionSchema) -> Vec<&Schema> {
     schema
     .variants()
     .iter()
-    .map(|f| schemas_to_generate(&f))
-    .flat_map(|c| c)
+    .flat_map(|f| schemas_to_generate(f))
     .collect()
 }
 
@@ -46,7 +44,6 @@ pub fn schemas_to_generate_record(schema: &RecordSchema) -> Vec<&Schema> {
 
     schema.fields
     .iter()
-    .map(|f| schemas_to_generate(&f.schema))
-    .flat_map(|c| c)
+    .flat_map(|f| schemas_to_generate(&f.schema))
     .collect()
 }

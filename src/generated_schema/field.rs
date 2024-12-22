@@ -21,10 +21,7 @@ pub struct GeneratedStructFields {
 
 impl GeneratedStructFields {
     pub fn has_default(&self) -> bool {
-        match self.default {
-            None => false,
-            Some(_) => true,
-        }
+        self.default.is_some()
     }
 
     pub fn from(
@@ -40,7 +37,7 @@ impl GeneratedStructFields {
 
         let default = match &field.default {
             None => None,
-            Some(val) => Some(FieldDefault::from(&val, &field.schema)?),
+            Some(val) => Some(FieldDefault::from(val, &field.schema)?),
         };
 
         Ok(GeneratedStructFields {
@@ -66,7 +63,7 @@ impl GeneratedStructFields {
                 self.name.original_name
             )?
         }
-        if let Some(_) = self.default {
+        if self.default.is_some() {
             writeln!(
                 content,
                 "    #[serde(default = \"{}::default_{}\")]",
@@ -79,7 +76,7 @@ impl GeneratedStructFields {
             self.name.sanitized_name, self.type_name
         )?;
 
-        return Ok(content);
+        Ok(content)
     }
 
     pub fn write_struct_default_method_content(&self) -> Result<Option<String>> {

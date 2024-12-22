@@ -13,9 +13,9 @@ Return the module file name. This module can contains:
 - the class contents
 */
 fn module_filename(parent_folder: PathBuf, namespace: &NamespaceInfo) -> PathBuf {
-    return parent_folder
-        .join(namespace.name.sanitized_name.to_string())
-        .with_extension("rs");
+    parent_folder
+        .join(&namespace.name.sanitized_name)
+        .with_extension("rs")
 }
 
 pub fn write_to_structured_files(parent_folder: PathBuf, namespace: NamespaceInfo) -> Result<()> {
@@ -38,7 +38,7 @@ pub fn write_to_structured_files(parent_folder: PathBuf, namespace: NamespaceInf
     for (_, child) in namespace.children.into_iter() {
         let sub_folder: PathBuf = parent_folder
             .clone()
-            .join(namespace.name.sanitized_name.to_string());
+            .join(&namespace.name.sanitized_name);
 
         write_to_structured_files(sub_folder, child)?;
     }
@@ -63,15 +63,15 @@ fn create_current_file(namespace: &NamespaceInfo, file_path: PathBuf) -> Result<
             write!(
                 file,
                 "pub mod {};\r\n",
-                child.name.sanitized_name.to_string()
+                &child.name.sanitized_name
             )?;
         }
 
-        file.write("\r\n".as_bytes())?;
+        file.write_all("\r\n".as_bytes())?;
     }
 
     for (_, content) in namespace.generated_types.iter().sorted_by_key(|p| p.0) {
-        file.write(content.produce_content()?.as_bytes())?;
+        file.write_all(content.produce_content()?.as_bytes())?;
     }
 
     Ok(())
