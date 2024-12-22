@@ -260,7 +260,7 @@ impl Avrogen {
 
         info!("4) Write to files");
 
-        writers::write(self.output_folder, root_ns)?;
+        writers::write(self.output_folder, root_ns, self.flat_ouptut)?;
 
         info!("Done!");
 
