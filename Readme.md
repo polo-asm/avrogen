@@ -5,7 +5,7 @@ You can use this crate to generate files in your rust project.
 To do that you need to add the crate to your build dependencies in the `Cargo.toml` file.
 ```toml
 [build-dependencies]
-avrogen = "0.1.3" # Update if needed
+avrogen = "0.2.0" # Update if needed
 ```
 Then you need to add a `build.rs` file with this kind of content:
 ```rust
@@ -63,6 +63,10 @@ Options:
 # Features
 
 This tool generate rust modules and classes from asvc files.
+The tool use apache-avro structures you must have this create in your project, the tool has need version > 0.17.0
+```shell
+cargo add apache-avro
+```
 
 ## Namespaces
 
@@ -98,5 +102,4 @@ cargo add uuid
 * [ ] Multiple union are not well managed.
 * [ ] Flatten the namespace structure if you don't want to have a module structure
 * [ ] Dates without chrono
-* [ ] Save to one file only
 * [ ] Save to stdout
