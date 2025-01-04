@@ -13,17 +13,18 @@ keywords = ["avro", "code-generation", "cli", "serde" ]
 categories = ["command-line-utilities", "development-tools::build-utils" ]
 
 [dependencies]
-apache-avro = { version = "0.16" }
-serde = { version = "1" }
-heck = "0.4"
-derive_more = "0.99.18"
-serde_json = "1.0.122"
+apache-avro = { version = "0.17.0" }
+serde = { version = "1.0.217" }
+heck = "0.5.0"
+derive_more = { version = "1.0.0", features = ["from"] }
+serde_json = "1.0.134"
 clap = { version = "4.5.15", features = ["derive"] }
 log = { version = "0.4.22", features = ["max_level_debug","release_max_level_debug"] }
 colog = "1.3.0"
 clap-verbosity = "2.1.0"
-glob = "0.3.1"
-itertools = "0.13.0"
+glob = "0.3.2"
+itertools = "0.14.0"
+indent = "0.1.1"
 
 [dev-dependencies]
 walkdir = "2.5.0"

@@ -50,6 +50,9 @@ pub struct Avrogen {
     verbose: Verbosity,
 
     log_level: Option<LevelFilter>,
+
+    #[arg(long)]
+    flat_ouptut: bool
 }
 
 impl Default for Avrogen {
@@ -72,6 +75,7 @@ impl Avrogen {
             output_folder: PathBuf::from("./"),
             verbose: Verbosity::default(),
             log_level: None,
+            flat_ouptut: false,
         }
     }
 
@@ -149,6 +153,17 @@ impl Avrogen {
     /// ```
     pub fn set_verbosity_debug(mut self) -> Self {
         self.log_level = Some(LevelFilter::Debug);
+        self
+    }
+
+    /// For builder syntax, allow to specify that output will be all in one file
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.set_flat_output();
+    /// ```
+    pub fn set_flat_output(mut self) -> Self {
+        self.flat_ouptut= true;
         self
     }
 
@@ -245,7 +260,7 @@ impl Avrogen {
 
         info!("4) Write to files");
 
-        writers::write(self.output_folder, root_ns)?;
+        writers::write(self.output_folder, root_ns, self.flat_ouptut)?;
 
         info!("Done!");
 

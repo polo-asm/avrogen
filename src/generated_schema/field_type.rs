@@ -20,8 +20,8 @@ pub fn get_field_type(schema: &Schema, default_namespace: &Option<String>) -> Re
         Schema::Double => Ok("f64".to_string()),
         Schema::Bytes => Ok("Vec<u8>".to_string()),
         Schema::String => Ok("String".to_string()),
-        Schema::Array(array_schema) => get_field_type_array(array_schema, default_namespace),
-        Schema::Map(map_schema) => get_field_type_map(map_schema, default_namespace),
+        Schema::Array(array_schema) => get_field_type_array(&array_schema.items, default_namespace),
+        Schema::Map(map_schema) => get_field_type_map(&map_schema.types, default_namespace),
         Schema::Union(union_schema) => get_field_type_union(union_schema, default_namespace),
         Schema::Record(record_schema) => {
             sanitize_container_name(&record_schema.name, default_namespace)
@@ -29,14 +29,17 @@ pub fn get_field_type(schema: &Schema, default_namespace: &Option<String>) -> Re
         Schema::Enum(enum_schema) => sanitize_container_name(&enum_schema.name, default_namespace),
         Schema::Fixed(fixed_schema) => Ok(format!("[u8; {}]", fixed_schema.size)),
         Schema::Decimal(_) => Ok("apache_avro::Decimal".to_string()),
+        Schema::BigDecimal => Ok("apache_avro::BigDecimal".to_string()),
         Schema::Uuid => Ok("Uuid::uuid".to_string()),
         Schema::Date => Ok("chrono::NaiveDateTime".to_string()),
         Schema::TimeMillis => Ok("chrono::NaiveDateTime".to_string()),
         Schema::TimeMicros => Ok("chrono::NaiveDateTime".to_string()),
         Schema::TimestampMillis => Ok("chrono::NaiveDateTime".to_string()),
         Schema::TimestampMicros => Ok("chrono::NaiveDateTime".to_string()),
+        Schema::TimestampNanos => Ok("chrono::NaiveDateTime".to_string()),
         Schema::LocalTimestampMillis => Ok("chrono::NaiveDateTime".to_string()),
         Schema::LocalTimestampMicros => Ok("chrono::NaiveDateTime".to_string()),
+        Schema::LocalTimestampNanos => Ok("chrono::NaiveDateTime".to_string()),
         Schema::Duration => Ok("apache_avro::Duration".to_string()),
         Schema::Ref { name: ref_name } => sanitize_container_name(ref_name, default_namespace),
     }
