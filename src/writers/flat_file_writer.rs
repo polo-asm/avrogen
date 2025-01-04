@@ -32,7 +32,7 @@ fn create_file(parent_folder: PathBuf, namespace: &NamespaceInfo) -> Result<File
     //    .with_extension("rs");
 
     let file_path = parent_folder
-        .join("com")
+        .join("mod")
         .with_extension("rs");        
     debug!("namespace name: {}", &namespace.name.sanitized_name);
     
