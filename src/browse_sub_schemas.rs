@@ -17,8 +17,8 @@ pub fn all_schemas_to_generate(root_schemas: Vec<&Schema>) -> Vec<&Schema>
 pub fn schemas_to_generate(schema: &Schema) -> Vec<&Schema> 
 {
     match schema {
-        Schema::Array(subtype) => schemas_to_generate(subtype),
-        Schema::Map(subtype) => schemas_to_generate(subtype),
+        Schema::Array(subtype) => schemas_to_generate(&subtype.items),
+        Schema::Map(subtype) => schemas_to_generate(&subtype.types),
         Schema::Union(subtype) => schemas_to_generate_union(subtype),// TODO:  VERIFY
         Schema::Record(r) => {
             let mut list= schemas_to_generate_record(r);

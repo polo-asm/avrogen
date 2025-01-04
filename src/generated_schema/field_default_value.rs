@@ -49,7 +49,7 @@ fn get_field_default_array_value(values_map: &[Value],field_schema: &Schema) -> 
         
                 let values_joined=values_map
                 .iter()
-                .map(|v|get_field_default_value(v,inner_type).unwrap())
+                .map(|v|get_field_default_value(v,&inner_type.items).unwrap())
                 .collect::<Vec<String>>()
                 .join(", ");
         
@@ -76,7 +76,7 @@ fn get_field_default_object_value(values_map: &Map<String, Value>,field_schema: 
         
                 let values_joined=values_map
                 .iter()
-                .map(|(key,value)|format!("(\"{key}\",{})",get_field_default_value(value,inner_type).unwrap()))
+                .map(|(key,value)|format!("(\"{key}\",{})",get_field_default_value(value,&inner_type.types).unwrap()))
                 .collect::<Vec<String>>()
                 .join(",\r\n");
         
