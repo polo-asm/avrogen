@@ -20,7 +20,7 @@ fn standard_test(source_name: &str) {
 
 fn standard_onefile_test(source_name: &str) {
     let source_file = format!("test_schemas/{}.avsc", source_name);
-    let dest_folder = format!("target/tmp/.result/{}/", source_name);
+    let dest_folder = format!("target/tmp/.result/{}1/", source_name);
     let expected_folder = format!("test_schemas/{}/expected1/", source_name);
 
     Avrogen::new()
