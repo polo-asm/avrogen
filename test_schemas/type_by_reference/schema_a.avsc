@@ -1,0 +1,9 @@
+{
+  "namespace": "com.example",
+  "name": "A",
+  "type": "record",
+  "fields": [
+    { "name":  "some_int", "type": "int" },
+    { "name":  "some_string", "type": "string" }
+  ]
+}

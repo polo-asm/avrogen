@@ -58,3 +58,34 @@ fn convert_recursive_record() {
 fn convert_recursive_record_flat() {
     standard_flat_test("recursive_record");
 }
+
+#[test]
+fn convert_type_with_reference() {
+    let dest_folder = "target/tmp/.result/type_by_reference/";
+    let expected_folder = "test_schemas/type_by_reference/expected_structured/";
+
+    Avrogen::new()
+        .add_source("test_schemas/type_by_reference/*.avsc")
+        .output_folder_from_str(dest_folder)
+        .set_verbosity_debug()
+        .execute()
+        .expect("No error should appear");
+
+    compare_folders_content(dest_folder, expected_folder);
+}
+
+#[test]
+fn convert_type_with_reference_flat() {
+    let dest_folder = "target/tmp/.result/type_by_reference_flat/";
+    let expected_folder = "test_schemas/type_by_reference/expected_flat/";
+
+    Avrogen::new()
+        .add_source("test_schemas/type_by_reference/*.avsc")
+        .output_folder_from_str(dest_folder)
+        .set_verbosity_debug()
+        .set_flat_output()
+        .execute()
+        .expect("No error should appear");
+
+    compare_folders_content(dest_folder, expected_folder);
+}
