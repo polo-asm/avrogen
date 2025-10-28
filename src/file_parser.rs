@@ -4,17 +4,8 @@ use apache_avro::Schema;
 
 pub fn parse_schemas(files: Vec<AvroFile>) -> Result<Vec<Schema>> 
 {
-    let mut schema_list = Vec::<Schema>::new();
+    let schema_content_list: Vec<&str> = files.iter().map(|f| f.content.as_str()).collect();
+    Schema::parse_list(&schema_content_list)
+        .map_err(|e| { AvrogenError::Custom(format!("{:?}",e)) })
 
-    for file in files {
-
-        let schema = Schema::parse_str(&file.content)
-        .map_err(|e| AvrogenError::Custom(format!("{:?}: {e}",file.file_path)))?;
-        
-        log::debug!("schema {} read",file.file_path);
-
-        schema_list.push(schema)
-    }
-
-    Ok(schema_list)
 }
