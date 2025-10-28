@@ -2,9 +2,10 @@ name: Rust
 
 on:
   push:
+    tags-ignore:
+      - '**'
   pull_request:
     branches: [ "main" ]
-
 env:
   CARGO_TERM_COLOR: always
 
