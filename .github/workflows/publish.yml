@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - "v*" # When a tag starting with "v" is pushed (ex: v1.0.0)
-
+    branches:
+      - 'main'  # Seule la branche main est prise en compte
 env:
   CARGO_TERM_COLOR: always
 
@@ -22,7 +23,8 @@ jobs:
       - name: Check version
         run: |
           # Extract version from Cargo.toml
-          VERSION=$(cargo read-manifest | grep '"version":' | cut -d'"' -f4)
+          VERSION=$(cargo read-manifest | jq -r '.version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
           # Extract Git Tag
           TAG=${GITHUB_REF#refs/tags/}
           # Comparer
