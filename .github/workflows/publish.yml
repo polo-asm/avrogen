@@ -1,0 +1,36 @@
+name: Rust
+
+on:
+  push:
+    tags:
+      - "v*" # When a tag starting with "v" is pushed (ex: v1.0.0)
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Check version
+        run: |
+          # Extract version from Cargo.toml
+          VERSION=$(cargo read-manifest | grep '"version":' | cut -d'"' -f4)
+          # Extract Git Tag
+          TAG=${GITHUB_REF#refs/tags/}
+          # Comparer
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "Error : The Git Tag ($TAG) doesn't match the Cargo version (v$VERSION)"
+            exit 1
+          fi
+      - name: Publish to crates.io
+        run: cargo publish --token ${CRATES_IO_TOKEN}
+        env:
+          CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
