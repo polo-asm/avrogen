@@ -59,7 +59,7 @@ fn create_current_file(namespace: &NamespaceInfo, file_path: PathBuf) -> Result<
         .open(file_path)?;
 
     if !namespace.children.is_empty() {
-        for (_, child) in namespace.children.iter() {
+        for (_, child) in namespace.children.iter().sorted_by_key(|n|n.0) {
             write!(
                 file,
                 "pub mod {};\r\n",

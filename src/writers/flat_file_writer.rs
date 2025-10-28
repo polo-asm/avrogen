@@ -56,7 +56,7 @@ fn write_namespace(mut file:&File,indent: usize,namespace: &NamespaceInfo) -> Re
         let indented_prefix= " ".repeat(indent);
         let sub_indent = indent+4;
 
-        for (_, child) in namespace.children.iter() {
+        for (_, child) in namespace.children.iter().sorted_by_key(|n|n.0) {
             write!(
                 file,
                 "{}pub mod {} {{\r\n\r\n",
