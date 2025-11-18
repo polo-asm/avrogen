@@ -23,6 +23,10 @@ pub enum AvrogenError
     #[from]
     Glob(glob::GlobError),
 
+    #[cfg( feature = "schema_registry")]
+    #[from]
+    Reqwest(reqwest::Error),
+
 }
 
 impl From<&str> for AvrogenError{
@@ -40,6 +44,8 @@ impl std::fmt::Display for AvrogenError{
         AvrogenError::Avro(e) => write!(fmt,"{e}"),
         AvrogenError::GlobPattern(e) => write!(fmt,"{e}"),
         AvrogenError::Glob(e) => write!(fmt,"{e}"),
+        #[cfg( feature = "schema_registry")]
+        AvrogenError::Reqwest(e) => write!(fmt,"{e}"),
     }
  }
 }

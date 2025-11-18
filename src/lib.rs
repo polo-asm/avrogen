@@ -7,7 +7,7 @@ use std::{path::PathBuf, str::FromStr};
 use crate::error::Result;
 use clap::Parser;
 use clap_verbosity::Verbosity;
-use log::{debug, info, LevelFilter};
+use log::{debug, error, info, LevelFilter};
 
 mod browse_sub_schemas;
 mod error;
@@ -15,6 +15,9 @@ mod file_parser;
 mod generated_schema;
 mod source;
 mod writers;
+
+#[cfg( feature = "schema_registry")]
+mod schema_registry;
 
 /// The Avrogen stucture is the main part of the utility.
 /// You need to create an instance of this object and execute it to generate rust files from your avsc files
@@ -33,6 +36,12 @@ mod writers;
 #[derive(Debug, Parser)]
 #[command(version)]
 pub struct Avrogen {
+
+    /// Schema registry source.
+    #[clap(skip)]
+    #[cfg( feature = "schema_registry")]
+    schema_registry_source: Option<crate::schema_registry::SchemaRegistrySource>,
+
     /// Source to use by the generator, use stdin if source isn't specified.
     ///
     /// The source use glob format, you can use multiple source arguments. For simple search: ./MyFolder/*.avsc. For recursive search: ./MyFolder/**/*.avsc
@@ -76,6 +85,8 @@ impl Avrogen {
             verbose: Verbosity::default(),
             log_level: None,
             flat_ouptut: false,
+            #[cfg( feature = "schema_registry")]
+            schema_registry_source: None,
         }
     }
 
@@ -100,6 +111,36 @@ impl Avrogen {
         self.source.push(file_pattern.to_string());
         self
     }
+
+    #[cfg( feature = "schema_registry")]
+    /// For builder syntax, allow to add a Schema registry source
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.add_schema_registry_source("http://my-schema-registry:8080/").add_subject("montopic-value");
+    /// ```
+    pub fn add_schema_registry_source(mut self, schema_registry_source: &str) -> Self {
+        self.schema_registry_source= Some(crate::schema_registry::SchemaRegistrySource::new(schema_registry_source.to_string()));
+        self
+    }
+
+    #[cfg( feature = "schema_registry")]
+    /// For builder syntax, allow to add a Subject to the schema registry source
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.add_schema_registry_source("http://my-schema-registry:8080/").add_subject("montopic-value");
+    /// ```
+    pub fn add_subject(mut self, subject: &str) -> Self {
+        if let Some(schema_registry_source) = self.schema_registry_source.as_mut() {
+            schema_registry_source.add_subject(subject);
+        }
+        else {
+            error!("add_schema_registry_source must be called first!");
+        }
+        self
+    }
+
     /// For builder syntax, allow to specify default namespace (or module in Rust)
     /// # example
     /// ```
@@ -233,7 +274,16 @@ impl Avrogen {
         info!("1) Browse source to get content");
 
         // We get a list of string. Each string is the content of a file.
-        let file_contents = source::read_files(self.source)?;
+        #[warn(unused_mut)]
+        let mut file_contents = source::read_files(self.source)?;
+
+        #[cfg( feature = "schema_registry")]
+        if let Some(schema_registry_source) = self.schema_registry_source {
+
+            info!("1.bis) Browse schema registry source");
+            let schemas = schema_registry_source.get_schemas()?;
+            file_contents.extend( schemas );
+        }
 
         info!("2) Parsing file to get schemas...");
 
