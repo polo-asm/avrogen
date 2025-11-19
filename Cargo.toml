@@ -1,6 +1,6 @@
 [package]
 name = "avrogen"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["polo-asm"]
 edition = "2021"
 license = "MIT"
