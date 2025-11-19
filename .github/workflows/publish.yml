@@ -4,14 +4,13 @@ on:
   push:
     tags:
       - "v*" # When a tag starting with "v" is pushed (ex: v1.0.0)
-    branches:
-      - 'main'  # Seule la branche main est prise en compte
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   publish_crate:
-
+    # Check that we are on Main branch and not on another branch.
+    if: github.base_ref == 'refs/heads/main' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
