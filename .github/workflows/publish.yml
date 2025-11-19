@@ -9,8 +9,6 @@ env:
 
 jobs:
   publish_crate:
-    # Check that we are on Main branch and not on another branch.
-    if: github.base_ref == 'refs/heads/main' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
