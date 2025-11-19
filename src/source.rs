@@ -5,14 +5,16 @@ use crate::Result;
 
 pub struct AvroFile{
     pub content: String,
+    #[allow(dead_code)]
     pub file_path: String,
 }
 
 pub fn read_files(source: Vec<String>)-> Result<Vec<AvroFile>>
 {
     if source.is_empty() {
-        let content: AvroFile = read_stdin()?;
-        return Ok(vec![content]);
+        let content = read_stdin()?;
+
+        return Ok (content.into_iter().collect());
     }
 
     let all_paths: Result<Vec<glob::Paths>>=source
@@ -32,7 +34,7 @@ pub fn read_files(source: Vec<String>)-> Result<Vec<AvroFile>>
     file_contents
 }
 
- fn read_stdin() -> Result<AvroFile> {
+ fn read_stdin() -> Result<Option<AvroFile>> {
 
     log::debug!("Standard input will be read");
 
@@ -40,7 +42,12 @@ pub fn read_files(source: Vec<String>)-> Result<Vec<AvroFile>>
 
     std::io::stdin().read_to_string(&mut stdin_content)?;
 
-    Ok(AvroFile{ content: stdin_content, file_path: "<stdin>".to_string()})
+     if stdin_content.is_empty()  {
+         Ok(None)
+     }
+     else {
+         Ok(Some(AvroFile{ content: stdin_content, file_path: "<stdin>".to_string()}))
+     }
 }
 
  fn read_file(file_path: PathBuf)-> Result<AvroFile> {
