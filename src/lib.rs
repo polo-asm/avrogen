@@ -7,7 +7,7 @@ use std::{path::PathBuf, str::FromStr};
 use crate::error::Result;
 use clap::Parser;
 use clap_verbosity::Verbosity;
-use log::{debug, error, info, LevelFilter};
+use log::{debug, info, LevelFilter};
 
 mod browse_sub_schemas;
 mod error;
@@ -129,14 +129,14 @@ impl Avrogen {
     /// # example
     /// ```
     /// let builder=avrogen::Avrogen::new();
-    /// builder.add_schema_registry_source("http://my-schema-registry:8080/").add_subject("montopic-value");
+    /// builder.add_schema_registry_source("http://my-schema-registry:8080/").add_subject("mytopic-value");
     /// ```
     pub fn add_subject(mut self, subject: &str) -> Self {
         if let Some(schema_registry_source) = self.schema_registry_source.as_mut() {
             schema_registry_source.add_subject(subject);
         }
         else {
-            error!("add_schema_registry_source must be called first!");
+            log::error!("add_schema_registry_source must be called first!");
         }
         self
     }

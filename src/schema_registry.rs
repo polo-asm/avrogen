@@ -36,7 +36,15 @@ impl SchemaRegistrySource
 
             let subject_data: Subject = result.json()?;
 
-            data.push(AvroFile{content: subject_data.schema, file_path: url });
+            let schema= subject_data.schema;
+
+            if schema.len() > 0
+            {
+                data.push(AvroFile{content: schema, file_path: url });
+            }
+            else {
+                println!("Schema returned by {} is empty, this schema will be skipped",url);
+            }
         }
 
         Ok(data)
