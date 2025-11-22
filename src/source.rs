@@ -12,9 +12,7 @@ pub struct AvroFile{
 pub fn read_files(source: Vec<String>)-> Result<Vec<AvroFile>>
 {
     if source.is_empty() {
-        let content = read_stdin()?;
-
-        return Ok (content.into_iter().collect());
+        return read_stdin();
     }
 
     let all_paths: Result<Vec<glob::Paths>>=source
@@ -34,20 +32,20 @@ pub fn read_files(source: Vec<String>)-> Result<Vec<AvroFile>>
     file_contents
 }
 
- fn read_stdin() -> Result<Option<AvroFile>> {
-
+fn read_stdin() -> Result<Vec<AvroFile>> {
     log::debug!("Standard input will be read");
 
-    let mut stdin_content= String::new();
-
+    let mut stdin_content = String::new();
     std::io::stdin().read_to_string(&mut stdin_content)?;
 
-     if stdin_content.is_empty()  {
-         Ok(None)
-     }
-     else {
-         Ok(Some(AvroFile{ content: stdin_content, file_path: "<stdin>".to_string()}))
-     }
+    if stdin_content.is_empty() {
+        Ok(Vec::new())
+    } else {
+        Ok(vec![AvroFile { 
+            content: stdin_content, 
+            file_path: "<stdin>".to_string() 
+        }])
+    }
 }
 
  fn read_file(file_path: PathBuf)-> Result<AvroFile> {

@@ -6,6 +6,6 @@ pub fn parse_schemas(files: Vec<AvroFile>) -> Result<Vec<Schema>>
 {
     let schema_content_list: Vec<&str> = files.iter().map(|f| f.content.as_str()).collect();
     Schema::parse_list(&schema_content_list)
-        .map_err(|e| { AvrogenError::Custom(format!("{:?}",e)) })
+        .map_err(|e| { AvrogenError::Custom(format!("{}",e)) })
 
 }
