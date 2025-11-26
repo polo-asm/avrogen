@@ -114,16 +114,16 @@ impl Avrogen {
 
     #[cfg( feature = "schema_registry")]
     /// For builder syntax, allow to add a Schema registry source
+    /// A local folder is used to create a cache of schemas
     /// # example
     /// ```
     /// let builder=avrogen::Avrogen::new();
-    /// builder.add_schema_registry_source("http://my-schema-registry:8080/").add_subject("montopic-value");
+    /// builder.add_schema_registry_source("http://my-schema-registry:8080/","local_folder").add_subject("montopic-value");
     /// ```
-    pub fn add_schema_registry_source(mut self, schema_registry_source: &str) -> Self {
-        self.schema_registry_source= Some(crate::schema_registry::SchemaRegistrySource::new(schema_registry_source.to_string()));
+    pub fn add_schema_registry_source(mut self, schema_registry_source: &str,local_folder: &str) -> Self {
+        self.schema_registry_source= Some(crate::schema_registry::SchemaRegistrySource::new(schema_registry_source.to_string(),local_folder.to_string()));
         self
     }
-
     #[cfg( feature = "schema_registry")]
     /// For builder syntax, allow to add a Subject to the schema registry source
     /// # example
