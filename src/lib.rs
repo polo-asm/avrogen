@@ -274,7 +274,7 @@ impl Avrogen {
         info!("1) Browse source to get content");
 
         // We get a list of string. Each string is the content of a file.
-        #[warn(unused_mut)]
+        #[allow(unused_mut)]
         let mut file_contents = source::read_files(self.source)?;
 
         #[cfg( feature = "schema_registry")]
