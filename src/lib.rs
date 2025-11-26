@@ -129,7 +129,7 @@ impl Avrogen {
     /// # example
     /// ```
     /// let builder=avrogen::Avrogen::new();
-    /// builder.add_schema_registry_source("http://my-schema-registry:8080/").add_subject("mytopic-value");
+    /// builder.add_schema_registry_source("http://my-schema-registry:8080/","local_folder").add_subject("mytopic-value");
     /// ```
     pub fn add_subject(mut self, subject: &str) -> Self {
         if let Some(schema_registry_source) = self.schema_registry_source.as_mut() {

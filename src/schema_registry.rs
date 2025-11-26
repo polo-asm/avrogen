@@ -43,7 +43,7 @@ impl SchemaRegistrySource
             let file_path = format!("{}/{}.avsc", self.local_folder, subject);
 
             match schema_content {
-                Err(e) => {
+                Err(_) => {
                     println!("cargo:warning=Failed to updated schema {}", subject);
 
                     let file_content = Self::read_from_file(&file_path);
