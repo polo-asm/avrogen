@@ -1,6 +1,7 @@
 use crate::Result;
+use crate::DateLibrary;
 use apache_avro::schema::*;
-
+use crate::generated_schema::ProcessSettings;
 use super::global::SanitizedName;
 
 pub fn is_nullable(schema: &Schema) -> bool {
@@ -10,7 +11,11 @@ pub fn is_nullable(schema: &Schema) -> bool {
         _ => false,
     }
 }
-pub fn get_field_type(schema: &Schema, default_namespace: &Option<String>) -> Result<String> {
+pub fn get_field_type(schema: &Schema, settings: &ProcessSettings) -> Result<String> {
+    let datetime_type = match settings.date_library {
+        DateLibrary::Chrono => "chrono::NaiveDateTime",
+        DateLibrary::Jiff => "jiff::Timestamp",
+    };
     match schema {
         Schema::Null => Ok("null".to_string()),
         Schema::Boolean => Ok("bool".to_string()),
@@ -20,43 +25,43 @@ pub fn get_field_type(schema: &Schema, default_namespace: &Option<String>) -> Re
         Schema::Double => Ok("f64".to_string()),
         Schema::Bytes => Ok("Vec<u8>".to_string()),
         Schema::String => Ok("String".to_string()),
-        Schema::Array(array_schema) => get_field_type_array(&array_schema.items, default_namespace),
-        Schema::Map(map_schema) => get_field_type_map(&map_schema.types, default_namespace),
-        Schema::Union(union_schema) => get_field_type_union(union_schema, default_namespace),
+        Schema::Array(array_schema) => get_field_type_array(&array_schema.items, settings),
+        Schema::Map(map_schema) => get_field_type_map(&map_schema.types, settings),
+        Schema::Union(union_schema) => get_field_type_union(union_schema, settings),
         Schema::Record(record_schema) => {
-            sanitize_container_name(&record_schema.name, default_namespace)
+            sanitize_container_name(&record_schema.name, &settings.default_namespace)
         }
-        Schema::Enum(enum_schema) => sanitize_container_name(&enum_schema.name, default_namespace),
+        Schema::Enum(enum_schema) => sanitize_container_name(&enum_schema.name, &settings.default_namespace),
         Schema::Fixed(fixed_schema) => Ok(format!("[u8; {}]", fixed_schema.size)),
         Schema::Decimal(_) => Ok("apache_avro::Decimal".to_string()),
         Schema::BigDecimal => Ok("apache_avro::BigDecimal".to_string()),
         Schema::Uuid => Ok("Uuid::uuid".to_string()),
-        Schema::Date => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimeMillis => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimeMicros => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimestampMillis => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimestampMicros => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimestampNanos => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::LocalTimestampMillis => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::LocalTimestampMicros => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::LocalTimestampNanos => Ok("chrono::NaiveDateTime".to_string()),
+        Schema::Date => Ok(datetime_type.to_string()),
+        Schema::TimeMillis => Ok(datetime_type.to_string()),
+        Schema::TimeMicros => Ok(datetime_type.to_string()),
+        Schema::TimestampMillis => Ok(datetime_type.to_string()),
+        Schema::TimestampMicros => Ok(datetime_type.to_string()),
+        Schema::TimestampNanos => Ok(datetime_type.to_string()),
+        Schema::LocalTimestampMillis => Ok(datetime_type.to_string()),
+        Schema::LocalTimestampMicros => Ok(datetime_type.to_string()),
+        Schema::LocalTimestampNanos => Ok(datetime_type.to_string()),
         Schema::Duration => Ok("apache_avro::Duration".to_string()),
-        Schema::Ref { name: ref_name } => sanitize_container_name(ref_name, default_namespace),
+        Schema::Ref { name: ref_name } => sanitize_container_name(ref_name, &settings.default_namespace),
     }
 }
 
 fn get_field_type_array(
     items_schema: &Schema,
-    default_namespace: &Option<String>,
+    settings: &ProcessSettings
 ) -> Result<String> {
-    let items_type = get_field_type(items_schema, default_namespace)?;
-    
+    let items_type = get_field_type(items_schema, settings)?;
+
     Ok(format!("Vec<{}>", items_type))
 }
 
-fn get_field_type_map(items_schema: &Schema, default_namespace: &Option<String>) -> Result<String> {
-    let items_type = get_field_type(items_schema, default_namespace)?;
-    
+fn get_field_type_map(items_schema: &Schema, settings: &ProcessSettings) -> Result<String> {
+    let items_type = get_field_type(items_schema, settings)?;
+
     Ok(format!("std::collections::HashMap<String, {}>", items_type))
 }
 
@@ -89,13 +94,12 @@ pub fn sanitize_container_name(
 }
 
 pub fn get_field_type_union(
-    schema: &UnionSchema,
-    default_namespace: &Option<String>,
+    schema: &UnionSchema,settings: &ProcessSettings
 ) -> Result<String> {
     let allvariants = schema.variants();
 
     if allvariants.len() == 1 {
-        return get_field_type(&allvariants[0], default_namespace);
+        return get_field_type(&allvariants[0], settings);
     }
 
     if allvariants.len() == 2 {
@@ -103,7 +107,7 @@ pub fn get_field_type_union(
             Schema::Null => {
                 return Ok(format!(
                     "Option<{}>",
-                    get_field_type(&allvariants[1], default_namespace)?
+                    get_field_type(&allvariants[1], settings)?
                 )
                 .to_string())
             }
@@ -111,7 +115,7 @@ pub fn get_field_type_union(
                 Schema::Null => {
                     return Ok(format!(
                         "Option<{}>",
-                        get_field_type(&allvariants[0], default_namespace)?
+                        get_field_type(&allvariants[0], settings)?
                     )
                     .to_string())
                 }

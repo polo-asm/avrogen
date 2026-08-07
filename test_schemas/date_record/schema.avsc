@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "namespace": "first",
+  "name": "DateContainer",
+  "fields": [
+    {"name": "a_date", "type": {"type": "int", "logicalType": "date"}},
+    {"name": "a_time_millis", "type": {"type": "int", "logicalType": "time-millis"}},
+    {"name": "a_time_micros", "type": {"type": "long", "logicalType": "time-micros"}},
+    {"name": "a_timestamp_millis", "type": {"type": "long", "logicalType": "timestamp-millis"}},
+    {"name": "a_timestamp_micros", "type": {"type": "long", "logicalType": "timestamp-micros"}},
+    {"name": "a_timestamp_nanos", "type": {"type": "long", "logicalType": "timestamp-nanos"}},
+    {"name": "a_local_timestamp_millis", "type": {"type": "long", "logicalType": "local-timestamp-millis"}},
+    {"name": "a_local_timestamp_micros", "type": {"type": "long", "logicalType": "local-timestamp-micros"}},
+    {"name": "a_local_timestamp_nanos", "type": {"type": "long", "logicalType": "local-timestamp-nanos"}}
+  ]
+}
+

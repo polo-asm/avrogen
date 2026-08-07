@@ -3,12 +3,12 @@ mod compare;
 use avrogen::Avrogen;
 use compare::compare_folders_content;
 
-fn standard_structured_test(source_name: &str) {
+fn standard_test(avrogen: Avrogen,source_name: &str, expected_folder_name: &str) {
     let source_file = format!("test_schemas/{}/schema.avsc", source_name);
-    let dest_folder = format!("target/tmp/.result/{}/structured/", source_name);
-    let expected_folder = format!("test_schemas/{}/expected_structured/", source_name);
+    let dest_folder = format!("target/tmp/.result/{}/{}/", source_name, expected_folder_name);
+    let expected_folder = format!("test_schemas/{}/expected_{}/", source_name, expected_folder_name);
 
-    Avrogen::new()
+    avrogen
         .add_source(source_file.as_str())
         .output_folder_from_str(dest_folder.as_str())
         .set_verbosity_debug()
@@ -18,74 +18,58 @@ fn standard_structured_test(source_name: &str) {
     compare_folders_content(dest_folder.as_str(), expected_folder.as_str());
 }
 
-fn standard_flat_test(source_name: &str) {
-    let source_file = format!("test_schemas/{}/schema.avsc", source_name);
-    let dest_folder = format!("target/tmp/.result/{}/flat/", source_name);
-    let expected_folder = format!("test_schemas/{}/expected_flat/", source_name);
-
-    Avrogen::new()
-        .add_source(source_file.as_str())
-        .output_folder_from_str(dest_folder.as_str())
-        .set_flat_output()
-        .set_verbosity_debug()
-        .execute()
-        .expect("No error should appear");
-
-    compare_folders_content(dest_folder.as_str(), expected_folder.as_str());
+#[test]
+fn convert_date_record_with_chrono() {
+    let avrogen=Avrogen::new().set_flat_output();
+    standard_test(avrogen, "date_record", "flat_chrono");
+}
+#[test]
+fn convert_date_record_with_jiff() {
+    let avrogen=Avrogen::new().set_flat_output().use_jiff();
+    standard_test(avrogen, "date_record", "flat_jiff");
 }
 
 #[test]
 fn convert_simple_enum() {
-    standard_structured_test("simple_enum");
+    let avrogen=Avrogen::new();
+    standard_test(avrogen, "simple_enum", "structured");
 }
 
 #[test]
 fn convert_simple_record() {
-    standard_structured_test("simple_record");
+    let avrogen=Avrogen::new();
+    standard_test(avrogen, "simple_record", "structured");
 }
 
 #[test]
 fn convert_simple_record_flat() {
-    standard_flat_test("simple_record");
+    let avrogen=Avrogen::new().set_flat_output();
+    standard_test(avrogen, "simple_record", "flat");
 }
 
 #[test]
 fn convert_recursive_record() {
-    standard_structured_test("recursive_record");
+    let avrogen=Avrogen::new();
+    standard_test(avrogen, "recursive_record", "structured");
 }
 
 #[test]
 fn convert_recursive_record_flat() {
-    standard_flat_test("recursive_record");
+    let avrogen=Avrogen::new().set_flat_output();
+    standard_test(avrogen, "recursive_record", "flat");
 }
 
 #[test]
 fn convert_type_with_reference() {
-    let dest_folder = "target/tmp/.result/type_by_reference/";
-    let expected_folder = "test_schemas/type_by_reference/expected_structured/";
-
-    Avrogen::new()
-        .add_source("test_schemas/type_by_reference/*.avsc")
-        .output_folder_from_str(dest_folder)
-        .set_verbosity_debug()
-        .execute()
-        .expect("No error should appear");
-
-    compare_folders_content(dest_folder, expected_folder);
+    let avrogen=Avrogen::new()
+        .add_source("test_schemas/type_by_reference/*.avsc");
+    standard_test(avrogen, "type_by_reference", "structured");
 }
 
 #[test]
 fn convert_type_with_reference_flat() {
-    let dest_folder = "target/tmp/.result/type_by_reference_flat/";
-    let expected_folder = "test_schemas/type_by_reference/expected_flat/";
-
-    Avrogen::new()
-        .add_source("test_schemas/type_by_reference/*.avsc")
-        .output_folder_from_str(dest_folder)
-        .set_verbosity_debug()
+    let avrogen=Avrogen::new()
         .set_flat_output()
-        .execute()
-        .expect("No error should appear");
-
-    compare_folders_content(dest_folder, expected_folder);
+        .add_source("test_schemas/type_by_reference/*.avsc");
+    standard_test(avrogen, "type_by_reference", "flat");
 }
