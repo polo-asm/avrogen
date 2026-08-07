@@ -2,6 +2,7 @@ mod compare;
 
 use avrogen::Avrogen;
 use compare::compare_folders_content;
+
 fn standard_test(avrogen: Avrogen,source_name: &str, expected_folder_name: &str) {
     let source_file = format!("test_schemas/{}/schema.avsc", source_name);
     let dest_folder = format!("target/tmp/.result/{}/{}/", source_name, expected_folder_name);
@@ -17,6 +18,11 @@ fn standard_test(avrogen: Avrogen,source_name: &str, expected_folder_name: &str)
     compare_folders_content(dest_folder.as_str(), expected_folder.as_str());
 }
 
+#[test]
+fn convert_date_record_with_chrono() {
+    let avrogen=Avrogen::new().set_flat_output();
+    standard_test(avrogen, "date_record", "flat_chrono");
+}
 
 #[test]
 fn convert_simple_enum() {
