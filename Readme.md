@@ -46,6 +46,15 @@ Options:
   -o, --output-folder <OUTPUT_FOLDER>
           [default: ./]
 
+      --flat-ouptut
+          
+
+      --date-library <DATE_LIBRARY>
+          Allow to choose which crate is used to generate date/time fields (`chrono` or `jiff`)
+          
+          [default: chrono]
+          [possible values: chrono, jiff]
+
   -v, --verbose...
           More output per occurrence
 
@@ -86,10 +95,21 @@ If a field/struct/module use a Rust reserved keyword a prefix will be added.
 Some attributes are added to do the mapping between the asvc name and the sanitized name in the rust code.
 
 ## Dates 
-This tool generate date fields which use `chrono` crate. Ensure that you have added this crate in your project with the command:
 ```shell
 cargo add chrono -F serde
 ```
+
+You can also generate date fields using the [`jiff`](https://crates.io/crates/jiff) crate instead. Use the `--date-library jiff` CLI option, or the `use_jiff()` builder method:
+```rust
+let builder= avrogen::Avrogen::new()
+    .add_source("Schemas/*.avsc")
+    .use_jiff();
+```
+In that case, ensure that you have added the `jiff` crate (with the `serde` feature) in your project:
+```shell
+cargo add jiff -F serde
+```
+
 
 ## Guids 
 This tool generate Guid fields which use `uuid` crate. Ensure that you have added this crate in your project with the command:
@@ -101,5 +121,4 @@ cargo add uuid
 
 * [ ] Multiple union are not well managed.
 * [ ] Flatten the namespace structure if you don't want to have a module structure
-* [ ] Dates without chrono
-* [ ] Save to stdout
+* [ ] Dates with no lib

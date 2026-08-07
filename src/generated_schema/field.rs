@@ -1,3 +1,4 @@
+use crate::DateLibrary;
 use crate::Result;
 use apache_avro::schema::*;
 use std::fmt::Write;
@@ -97,23 +98,25 @@ impl GeneratedStructFields {
     }
 }
 
-fn get_serde_with(field: &RecordField, _settings: &ProcessSettings) -> Option<&'static str> {
-    match field.schema {
-        Schema::Date => None,
-        Schema::TimeMillis => Some("#[serde(with = \"chrono::naive::serde::ts_milliseconds\")]"),
-        Schema::TimeMicros => Some("#[serde(with = \"chrono::naive::serde::ts_microseconds\")]"),
-        Schema::TimestampMillis => {
+fn get_serde_with(field: &RecordField, settings: &ProcessSettings) -> Option<&'static str> {
+    match (settings.date_library, &field.schema) {
+        (DateLibrary::Chrono, Schema::TimeMillis | Schema::TimestampMillis | Schema::LocalTimestampMillis) => {
             Some("#[serde(with = \"chrono::naive::serde::ts_milliseconds\")]")
         }
-        Schema::TimestampMicros => {
+        (DateLibrary::Chrono, Schema::TimeMicros | Schema::TimestampMicros | Schema::LocalTimestampMicros) => {
             Some("#[serde(with = \"chrono::naive::serde::ts_microseconds\")]")
         }
-        Schema::LocalTimestampMillis => {
-            Some("#[serde(with = \"chrono::naive::serde::ts_milliseconds\")]")
+
+        (DateLibrary::Jiff, Schema::TimeMillis | Schema::TimestampMillis | Schema::LocalTimestampMillis) => {
+            Some("#[serde(with = \"jiff::fmt::serde::timestamp::millisecond::required\")]")
         }
-        Schema::LocalTimestampMicros => {
-            Some("#[serde(with = \"chrono::naive::serde::ts_microseconds\")]")
+        (DateLibrary::Jiff, Schema::TimeMicros | Schema::TimestampMicros | Schema::LocalTimestampMicros) => {
+            Some("#[serde(with = \"jiff::fmt::serde::timestamp::microsecond::required\")]")
         }
+        (DateLibrary::Jiff, Schema::Date) => {
+            Some("#[serde(with = \"jiff::fmt::serde::timestamp::second::required\")]")
+        }
+
         _ => None,
     }
 }

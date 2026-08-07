@@ -23,6 +23,11 @@ fn convert_date_record_with_chrono() {
     let avrogen=Avrogen::new().set_flat_output();
     standard_test(avrogen, "date_record", "flat_chrono");
 }
+#[test]
+fn convert_date_record_with_jiff() {
+    let avrogen=Avrogen::new().set_flat_output().use_jiff();
+    standard_test(avrogen, "date_record", "flat_jiff");
+}
 
 #[test]
 fn convert_simple_enum() {

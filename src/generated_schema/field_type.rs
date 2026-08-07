@@ -1,4 +1,5 @@
 use crate::Result;
+use crate::DateLibrary;
 use apache_avro::schema::*;
 use crate::generated_schema::ProcessSettings;
 use super::global::SanitizedName;
@@ -11,6 +12,10 @@ pub fn is_nullable(schema: &Schema) -> bool {
     }
 }
 pub fn get_field_type(schema: &Schema, settings: &ProcessSettings) -> Result<String> {
+    let datetime_type = match settings.date_library {
+        DateLibrary::Chrono => "chrono::NaiveDateTime",
+        DateLibrary::Jiff => "jiff::Timestamp",
+    };
     match schema {
         Schema::Null => Ok("null".to_string()),
         Schema::Boolean => Ok("bool".to_string()),
@@ -31,15 +36,15 @@ pub fn get_field_type(schema: &Schema, settings: &ProcessSettings) -> Result<Str
         Schema::Decimal(_) => Ok("apache_avro::Decimal".to_string()),
         Schema::BigDecimal => Ok("apache_avro::BigDecimal".to_string()),
         Schema::Uuid => Ok("Uuid::uuid".to_string()),
-        Schema::Date => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimeMillis => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimeMicros => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimestampMillis => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimestampMicros => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::TimestampNanos => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::LocalTimestampMillis => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::LocalTimestampMicros => Ok("chrono::NaiveDateTime".to_string()),
-        Schema::LocalTimestampNanos => Ok("chrono::NaiveDateTime".to_string()),
+        Schema::Date => Ok(datetime_type.to_string()),
+        Schema::TimeMillis => Ok(datetime_type.to_string()),
+        Schema::TimeMicros => Ok(datetime_type.to_string()),
+        Schema::TimestampMillis => Ok(datetime_type.to_string()),
+        Schema::TimestampMicros => Ok(datetime_type.to_string()),
+        Schema::TimestampNanos => Ok(datetime_type.to_string()),
+        Schema::LocalTimestampMillis => Ok(datetime_type.to_string()),
+        Schema::LocalTimestampMicros => Ok(datetime_type.to_string()),
+        Schema::LocalTimestampNanos => Ok(datetime_type.to_string()),
         Schema::Duration => Ok("apache_avro::Duration".to_string()),
         Schema::Ref { name: ref_name } => sanitize_container_name(ref_name, &settings.default_namespace),
     }

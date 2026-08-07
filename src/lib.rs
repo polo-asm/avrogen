@@ -20,6 +20,16 @@ mod writers;
 #[cfg( feature = "schema_registry")]
 mod schema_registry;
 
+/// Allow to choose which crate is used to generate date/time fields.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
+pub enum DateLibrary {
+    /// Use the `chrono` crate (default). Generated fields need `chrono` with the `serde` feature in your project.
+    #[default]
+    Chrono,
+    /// Use the `jiff` crate. Generated fields need `jiff` with the `serde` feature in your project.
+    Jiff,
+}
+
 /// The Avrogen stucture is the main part of the utility.
 /// You need to create an instance of this object and execute it to generate rust files from your avsc files
 /// # example
@@ -62,7 +72,11 @@ pub struct Avrogen {
     log_level: Option<LevelFilter>,
 
     #[arg(long)]
-    flat_ouptut: bool
+    flat_ouptut: bool,
+
+    /// Allow to choose which crate is used to generate date/time fields (`chrono` or `jiff`).
+    #[arg(long, value_enum, default_value_t=DateLibrary::Chrono, aliases=&["date-library"])]
+    date_library: DateLibrary,
 }
 
 impl Default for Avrogen {
@@ -86,6 +100,7 @@ impl Avrogen {
             verbose: Verbosity::default(),
             log_level: None,
             flat_ouptut: false,
+            date_library: DateLibrary::default(),
             #[cfg( feature = "schema_registry")]
             schema_registry_source: None,
         }
@@ -209,6 +224,28 @@ impl Avrogen {
         self
     }
 
+    /// For builder syntax, allow to choose which crate is used to generate date/time fields
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.use_chrono();
+    /// ```
+    pub fn use_chrono(mut self) -> Self {
+        self.date_library = DateLibrary::Chrono;
+        self
+    }
+
+    /// For builder syntax, shortcut to generate date/time fields using the `jiff` crate instead of `chrono`
+    /// # example
+    /// ```
+    /// let builder=avrogen::Avrogen::new();
+    /// builder.use_jiff();
+    /// ```
+    pub fn use_jiff(mut self) -> Self {
+        self.date_library = DateLibrary::Jiff;
+        self
+    }
+
     /// For builder syntax, allow to specify verbosity to Information
     /// # example
     /// ```
@@ -293,6 +330,7 @@ impl Avrogen {
         let mut root_ns = NamespaceInfo::root();
         let process_settings =ProcessSettings::new(
             self.default_namespace.clone(),
+            self.date_library,
         );
 
         debug!(
