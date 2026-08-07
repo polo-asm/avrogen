@@ -8,6 +8,7 @@ use crate::error::Result;
 use clap::Parser;
 use clap_verbosity::Verbosity;
 use log::{debug, info, LevelFilter};
+use crate::generated_schema::ProcessSettings;
 
 mod browse_sub_schemas;
 mod error;
@@ -289,7 +290,10 @@ impl Avrogen {
 
         let root_schemas = parse_schemas(file_contents)?;
 
-        let mut root_ns = NamespaceInfo::root(self.default_namespace);
+        let mut root_ns = NamespaceInfo::root();
+        let process_settings =ProcessSettings::new(
+            self.default_namespace.clone(),
+        );
 
         debug!(
             "{} root schemas found, browse sub schemas...",
@@ -305,7 +309,7 @@ impl Avrogen {
         info!("3) Process schemas to get informations...");
 
         for schema in all_schemas {
-            root_ns.process_schema(schema)?;
+            root_ns.process_schema(schema,&process_settings)?;
         }
 
         info!("4) Write to files");

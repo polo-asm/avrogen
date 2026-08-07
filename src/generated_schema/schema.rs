@@ -3,7 +3,7 @@ use apache_avro::{schema::*, Schema};
 use std::fmt::Write;
 use std::string::*;
 use std::*;
-
+use crate::generated_schema::ProcessSettings;
 use super::field::GeneratedStructFields;
 use super::global::*;
 
@@ -140,11 +140,11 @@ impl GeneratedEnum {
 impl GeneratedType {
     pub fn generate_schema_struct(
         schema: &Schema,
-        default_namespace: &Option<String>,
+        settings: &ProcessSettings,
     ) -> Result<GeneratedType> {
         match schema {
             Schema::Record(i) => {
-                Self::treat_record_schema(i, default_namespace).map(GeneratedType::Struct)
+                Self::treat_record_schema(i, settings).map(GeneratedType::Struct)
             }
             Schema::Array(_) => todo!(),
             Schema::Map(_) => todo!(),
@@ -179,7 +179,7 @@ impl GeneratedType {
 
     pub fn treat_record_schema(
         record_schema: &RecordSchema,
-        default_namespace: &Option<String>,
+        settings: &ProcessSettings,
     ) -> Result<GeneratedStruct> {
         let schema_name = SanitizedName::from_type(&record_schema.name.name);
 
@@ -188,7 +188,7 @@ impl GeneratedType {
         let fields: Result<Vec<GeneratedStructFields>> = record_schema
             .fields
             .iter()
-            .map(|f| GeneratedStructFields::from(f, &schema_name, default_namespace))
+            .map(|f| GeneratedStructFields::from(f, &schema_name, settings))
             .collect();
 
         Ok(GeneratedStruct {
