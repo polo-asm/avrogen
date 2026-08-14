@@ -59,14 +59,14 @@ fn write_namespace(mut file:&File,indent: usize,namespace: &NamespaceInfo) -> Re
         for (_, child) in namespace.children.iter().sorted_by_key(|n|n.0) {
             write!(
                 file,
-                "{}pub mod {} {{\r\n\r\n",
+                "{}pub mod {} {{\n\n",
                 indented_prefix,
                 &child.name.sanitized_name
             )?;
 
             write_namespace(file, sub_indent, child)?;
 
-            write!(file,"{}}}\r\n",indented_prefix)?;
+            write!(file,"{}}}\n",indented_prefix)?;
         }
     }
 

@@ -79,7 +79,7 @@ fn get_field_default_object_value(values_map: &Map<String, Value>,field_schema: 
                 .iter()
                 .map(|(key,value)|format!("(\"{key}\",{})",get_field_default_value(value,&inner_type.types,settings).unwrap()))
                 .collect::<Vec<String>>()
-                .join(",\r\n");
+                .join(",\n");
         
                 Ok(format!("HashMap::from([{values_joined}])"))
             }

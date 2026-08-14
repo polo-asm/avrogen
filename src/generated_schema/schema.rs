@@ -63,7 +63,7 @@ impl GeneratedStruct {
             let field_declaration = field.write_struct_declaration_content()?;
             content_string.push_str(&field_declaration);
         }
-        write!(content_string, "}}\r\n\r\n")?;
+        write!(content_string, "}}\n\n")?;
 
         write!(content_string, "impl {} {{", self.name.sanitized_name)?;
 
@@ -75,7 +75,7 @@ impl GeneratedStruct {
                 }
             }
         }
-        write!(content_string, "}}\r\n\r\n")?;
+        write!(content_string, "}}\n\n")?;
 
         Ok(content_string)
     }
@@ -131,7 +131,7 @@ impl GeneratedEnum {
             }
             writeln!(content_string, "    {},", record_name.sanitized_name)?;
         }
-        write!(content_string, "}}\r\n\r\n")?;
+        write!(content_string, "}}\n\n")?;
 
         Ok(content_string)
     }

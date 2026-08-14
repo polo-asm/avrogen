@@ -68,7 +68,7 @@ pub const RESERVED_NAMES: &[&str] = &[
     if let Some(doc) = avro_doc{
 
         for line in doc.lines() {
-            write!(field_doc,"{}/// {}\r\n",spaces,line)?;
+            write!(field_doc,"{}/// {}\n",spaces,line)?;
         }
     }
     Ok(field_doc)

@@ -88,7 +88,7 @@ impl GeneratedStructFields {
                     .map_err(|e| format!("{} => {e}", self.name.sanitized_name))?;
 
                 Ok(format!(
-                    "\r\n    #[inline(always)]\r\n    pub fn default_{}() -> {} {{\r\n        {}\r\n    }}\r\n",
+                    "\n    #[inline(always)]\n    pub fn default_{}() -> {} {{\n        {}\n    }}\n",
                     self.name.sanitized_name, self.type_name, default_value_str
                 )
                 .into())

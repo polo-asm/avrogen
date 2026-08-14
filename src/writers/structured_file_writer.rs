@@ -62,12 +62,12 @@ fn create_current_file(namespace: &NamespaceInfo, file_path: PathBuf) -> Result<
         for (_, child) in namespace.children.iter().sorted_by_key(|n|n.0) {
             write!(
                 file,
-                "pub mod {};\r\n",
+                "pub mod {};\n",
                 &child.name.sanitized_name
             )?;
         }
 
-        file.write_all("\r\n".as_bytes())?;
+        file.write_all("\n".as_bytes())?;
     }
 
     for (_, content) in namespace.generated_types.iter().sorted_by_key(|p| p.0) {
