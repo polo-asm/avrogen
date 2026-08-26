@@ -2,12 +2,21 @@ use apache_avro::Schema;
 use serde_json::{Map, Value};
 use crate::Result;
 use crate::generated_schema::ProcessSettings;
-use super::field_type::{get_field_type, is_nullable};
+use super::field_type::{get_field_type, is_nullable, StructFieldName};
 
 #[derive(Debug)]
 pub struct FieldDefault{
     content: String,
 }
+
+/// Juste utilisé pour produire un nom de type dans les messages d'erreur ci-dessous:
+/// pas de contexte de nommage ni de type généré à enregistrer.
+fn describe_field_type(field_schema: &Schema, settings: &ProcessSettings) -> Result<String> {
+    let naming = StructFieldName { struct_name: "", field_name: "" };
+    let mut ignored_extra_types = Vec::new();
+    get_field_type(field_schema, settings, &naming, &mut ignored_extra_types)
+}
+
 
 impl FieldDefault{
     pub fn from(default_value: &serde_json::Value,field_schema: &Schema,settings: &ProcessSettings)-> Result<FieldDefault>
@@ -60,7 +69,7 @@ fn get_field_default_array_value(values_map: &[Value],field_schema: &Schema,sett
         _ =>
         {
             // No need to send Namespace, it's just for logs...
-            let field_type = get_field_type(field_schema,settings)?;
+            let field_type = describe_field_type(field_schema,settings)?;
             Err(format!("Impossible to manage default value Array for type which is a {}",field_type).into())
         }
     }
@@ -89,7 +98,7 @@ fn get_field_default_object_value(values_map: &Map<String, Value>,field_schema: 
         _ =>
         {
             // No need to send Namespace, it's just for logs...
-            let field_type = get_field_type(field_schema,settings)?;
+            let field_type = describe_field_type(field_schema,settings)?;
             Err(format!("Impossible to manage default value Object for type which is a {}",field_type).into())
         }
     }

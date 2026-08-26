@@ -202,25 +202,28 @@ pub fn union_type_name(struct_name: &str, field_name: &str) -> SanitizedName {
 }
 
 impl GeneratedType {
+    /// Retourne le type principal généré, ainsi que d'éventuels types additionnels
+    /// générés au passage (ex: l'enum d'un champ dont le type est une union multiple).
     pub fn generate_schema_struct(
         schema: &Schema,
         settings: &ProcessSettings,
-    ) -> Result<GeneratedType> {
+    ) -> Result<(GeneratedType, Vec<GeneratedType>)> {
         match schema {
             Schema::Record(i) => {
-                Self::treat_record_schema(i, settings).map(GeneratedType::Struct)
+                let (generated_struct, extra_types) = Self::treat_record_schema(i, settings)?;
+                Ok((GeneratedType::Struct(generated_struct), extra_types))
             }
             Schema::Array(_) => todo!(),
             Schema::Map(_) => todo!(),
             Schema::Union(_) => todo!(),
             Schema::Enum(enum_schema) => {
-                Self::treat_enum_schema(enum_schema).map(GeneratedType::Enum)
+                Self::treat_enum_schema(enum_schema).map(|e| (GeneratedType::Enum(e), vec![]))
             }
             Schema::Fixed(_) => todo!(),
             Schema::Decimal(_) => todo!(),
             Schema::Duration => todo!(),
             Schema::Ref { .. } => todo!(),
-            _ => Ok(GeneratedType::None),
+            _ => Ok((GeneratedType::None, vec![])),
         }
     }
 
@@ -244,21 +247,26 @@ impl GeneratedType {
     pub fn treat_record_schema(
         record_schema: &RecordSchema,
         settings: &ProcessSettings,
-    ) -> Result<GeneratedStruct> {
+    ) -> Result<(GeneratedStruct, Vec<GeneratedType>)> {
         let schema_name = SanitizedName::from_type(&record_schema.name.name);
 
         let schema_doc = format_doc(&record_schema.doc, "")?;
 
+        let mut extra_types: Vec<GeneratedType> = Vec::new();
+
         let fields: Result<Vec<GeneratedStructFields>> = record_schema
             .fields
             .iter()
-            .map(|f| GeneratedStructFields::from(f, &schema_name, settings))
+            .map(|f| GeneratedStructFields::from(f, &schema_name, settings, &mut extra_types))
             .collect();
 
-        Ok(GeneratedStruct {
-            name: schema_name,
-            schema_doc,
-            fields: fields?,
-        })
+        Ok((
+            GeneratedStruct {
+                name: schema_name,
+                schema_doc,
+                fields: fields?,
+            },
+            extra_types,
+        ))
     }
 }
