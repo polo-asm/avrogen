@@ -142,10 +142,11 @@ impl GeneratedEnum {
 }
 
 #[derive(Debug)]
-pub struct GeneratedUnionVariant {
-    pub variant_name: SanitizedName,
-
-    pub type_name: String,
+pub enum GeneratedUnionVariant {
+    /// Variante unitaire (sans donnée), utilisée pour représenter `null`.
+    Unit(SanitizedName),
+    /// Variante portant une donnée du type Rust indiqué.
+    Tuple(SanitizedName, String),
 }
 
 #[derive(Debug)]
@@ -177,11 +178,18 @@ impl GeneratedUnion {
         writeln!(content_string, "pub enum {} {{", self.name.sanitized_name)?;
 
         for variant in self.variants.iter() {
-            writeln!(
-                content_string,
-                "    {}({}),",
-                variant.variant_name.sanitized_name, variant.type_name
-            )?;
+            match variant {
+                GeneratedUnionVariant::Unit(variant_name) => writeln!(
+                    content_string,
+                    "    {},",
+                    variant_name.sanitized_name
+                )?,
+                GeneratedUnionVariant::Tuple(variant_name, type_name) => writeln!(
+                    content_string,
+                    "    {}({}),",
+                    variant_name.sanitized_name, type_name
+                )?,
+            }
         }
         write!(content_string, "}}\n\n")?;
 
@@ -190,11 +198,18 @@ impl GeneratedUnion {
         if let Some(first_variant) = self.variants.first() {
             writeln!(content_string, "impl Default for {} {{", self.name.sanitized_name)?;
             writeln!(content_string, "    fn default() -> Self {{")?;
-            writeln!(
-                content_string,
-                "        {}::{}(Default::default())",
-                self.name.sanitized_name, first_variant.variant_name.sanitized_name
-            )?;
+            match first_variant {
+                GeneratedUnionVariant::Unit(variant_name) => writeln!(
+                    content_string,
+                    "        {}::{}",
+                    self.name.sanitized_name, variant_name.sanitized_name
+                )?,
+                GeneratedUnionVariant::Tuple(variant_name, _) => writeln!(
+                    content_string,
+                    "        {}::{}(Default::default())",
+                    self.name.sanitized_name, variant_name.sanitized_name
+                )?,
+            }
             writeln!(content_string, "    }}")?;
             write!(content_string, "}}\n\n")?;
         }

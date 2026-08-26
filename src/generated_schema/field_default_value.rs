@@ -62,27 +62,21 @@ fn get_field_default_value(default_value: &serde_json::Value,field_schema: &Sche
 
 /// Le standard Avro impose que la valeur par défaut d'une union corresponde au
 /// type de la première variante déclarée. On génère donc la valeur pour cette
-/// première variante, puis on l'enveloppe dans `{Enum}::{Variant}(...)`.
+/// première variante, puis on l'enveloppe dans `{Enum}::{Variant}(...)`
+/// (ou `{Enum}::None` si la première variante est `null`).
 fn get_field_default_union_value(default_value: &serde_json::Value,union_schema: &UnionSchema,settings: &ProcessSettings,naming: &StructFieldName) -> Result<String> {
     let allvariants = union_schema.variants();
-    let has_null = allvariants.iter().any(|v| matches!(v, Schema::Null));
     let first_variant = &allvariants[0];
+    let union_type_name = union_type_name(naming.struct_name, naming.field_name).sanitized_name;
 
     if let Schema::Null = first_variant {
-        return Ok("None".to_string());
+        return Ok(format!("{union_type_name}::None"));
     }
 
     let variant_value = get_field_default_value(default_value, first_variant, settings, naming)?;
-    let union_type_name = union_type_name(naming.struct_name, naming.field_name).sanitized_name;
     let variant_name = union_variant_name(first_variant).sanitized_name;
 
-    let wrapped = format!("{union_type_name}::{variant_name}({variant_value})");
-
-    if has_null {
-        Ok(format!("Some({wrapped})"))
-    } else {
-        Ok(wrapped)
-    }
+    Ok(format!("{union_type_name}::{variant_name}({variant_value})"))
 }
 
 fn get_field_default_array_value(values_map: &[Value],field_schema: &Schema,settings: &ProcessSettings,naming: &StructFieldName) -> Result<String>{

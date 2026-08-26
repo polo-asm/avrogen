@@ -141,25 +141,25 @@ fn get_field_type_union(
         }
     }
 
-    // Plusieurs variantes non-null : on génère une enum dédiée `{Struct}{Field}`.
-    let has_null = allvariants.iter().any(|v| matches!(v, Schema::Null));
-
+    // Plusieurs variantes (au moins 3 au total, ou 2 variantes non-null) : on génère
+    // une enum dédiée `{Struct}{Field}`. Si `null` est présente, elle devient une
+    // variante unitaire `None` de cette enum (pas de `Option<...>`).
     let mut union_variants = Vec::new();
-    for variant_schema in allvariants.iter().filter(|v| !matches!(v, Schema::Null)) {
-        let type_name = get_field_type(variant_schema, settings, naming, extra_types)?;
-        let variant_name = union_variant_name(variant_schema);
-        union_variants.push(GeneratedUnionVariant { variant_name, type_name });
+    for variant_schema in allvariants.iter() {
+        if let Schema::Null = variant_schema {
+            union_variants.push(GeneratedUnionVariant::Unit(SanitizedName::from_type("None")));
+        } else {
+            let type_name = get_field_type(variant_schema, settings, naming, extra_types)?;
+            let variant_name = union_variant_name(variant_schema);
+            union_variants.push(GeneratedUnionVariant::Tuple(variant_name, type_name));
+        }
     }
 
     let generated_union = GeneratedUnion::new(naming.struct_name, naming.field_name, union_variants);
     let union_type_name = generated_union.type_name().to_string();
     extra_types.push(GeneratedType::Union(generated_union));
 
-    if has_null {
-        Ok(format!("Option<{}>", union_type_name))
-    } else {
-        Ok(union_type_name)
-    }
+    Ok(union_type_name)
 }
 
 /// Nom donné à la variante de l'enum générée pour un type d'une union.

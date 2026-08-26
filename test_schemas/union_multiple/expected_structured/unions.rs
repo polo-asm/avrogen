@@ -11,15 +11,15 @@ impl Detail {}
 pub struct Message {
     pub content: MessageContent,
     #[serde(default = "Message::default_optional_content")]
-    pub optional_content: Option<MessageOptionalContent>,
+    pub optional_content: MessageOptionalContent,
     #[serde(default = "Message::default_with_default")]
     pub with_default: MessageWithDefault,
 }
 
 impl Message {
     #[inline(always)]
-    pub fn default_optional_content() -> Option<MessageOptionalContent> {
-        None
+    pub fn default_optional_content() -> MessageOptionalContent {
+        MessageOptionalContent::None
     }
 
     #[inline(always)]
@@ -45,13 +45,14 @@ impl Default for MessageContent {
 #[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize)]
 #[serde(untagged)]
 pub enum MessageOptionalContent {
+    None,
     Int(i32),
     String(String),
 }
 
 impl Default for MessageOptionalContent {
     fn default() -> Self {
-        MessageOptionalContent::Int(Default::default())
+        MessageOptionalContent::None
     }
 }
 
