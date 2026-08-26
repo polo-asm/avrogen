@@ -1,8 +1,13 @@
+mod struct_;
+mod enum_;
+mod union;
+
+pub use enum_::GeneratedEnum;
+pub use struct_::GeneratedStruct;
+pub use union::{union_type_name, GeneratedUnion, GeneratedUnionVariant};
+
 use crate::Result;
 use apache_avro::{schema::*, Schema};
-use std::fmt::Write;
-use std::string::*;
-use std::*;
 use crate::generated_schema::ProcessSettings;
 use super::field::GeneratedStructFields;
 use super::global::*;
@@ -14,6 +19,8 @@ pub enum GeneratedType {
     Enum(GeneratedEnum),
 
     Struct(GeneratedStruct),
+
+    Union(GeneratedUnion),
 }
 
 impl GeneratedType {
@@ -21,6 +28,7 @@ impl GeneratedType {
         match self {
             GeneratedType::Enum(x) => x.produce_content(),
             GeneratedType::Struct(x) => x.produce_content(),
+            GeneratedType::Union(x) => x.produce_content(),
             GeneratedType::None => Ok("".to_string()),
         }
     }
@@ -28,140 +36,41 @@ impl GeneratedType {
         match self {
             GeneratedType::Enum(x) => x.name.original_name.to_owned(),
             GeneratedType::Struct(x) => x.name.original_name.to_owned(),
+            GeneratedType::Union(x) => x.name.original_name.to_owned(),
             GeneratedType::None => "".to_owned(),
         }
     }
 }
 
-#[derive(Debug)]
-pub struct GeneratedStruct {
-    name: SanitizedName,
-
-    schema_doc: String,
-
-    fields: Vec<GeneratedStructFields>,
-}
-
-impl GeneratedStruct {
-    pub fn produce_content(&self) -> Result<String> {
-        let mut content_string = self.schema_doc.to_owned();
-        writeln!(
-            content_string,
-            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]"
-        )?;
-        writeln!(content_string, "#[serde(default)]")?;
-        if self.name.is_sanitized {
-            writeln!(
-                content_string,
-                "#[serde(rename = \"{}\")]",
-                self.name.original_name
-            )?
-        }
-        writeln!(content_string, "pub struct {} {{", self.name.sanitized_name)?;
-
-        for field in self.fields.iter() {
-            let field_declaration = field.write_struct_declaration_content()?;
-            content_string.push_str(&field_declaration);
-        }
-        write!(content_string, "}}\n\n")?;
-
-        write!(content_string, "impl {} {{", self.name.sanitized_name)?;
-
-        if self.fields.iter().any(|f| f.has_default()) {
-            for field in self.fields.iter() {
-                let field_default_method = field.write_struct_default_method_content()?;
-                if let Some(field_default_method) = field_default_method {
-                    content_string.push_str(&field_default_method);
-                }
-            }
-        }
-        write!(content_string, "}}\n\n")?;
-
-        Ok(content_string)
-    }
-}
-
-#[derive(Debug)]
-pub struct GeneratedEnum {
-    name: SanitizedName,
-
-    schema_doc: String,
-
-    default_record: Option<String>,
-
-    records: Vec<String>,
-}
-
-impl GeneratedEnum {
-    pub fn produce_content(&self) -> Result<String> {
-        let mut content_string = self.schema_doc.to_owned();
-        writeln!(
-            content_string,
-            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]"
-        )?;
-
-        if self.name.is_sanitized {
-            writeln!(
-                content_string,
-                "#[serde(rename = \"{}\")]",
-                self.name.original_name
-            )?
-        }
-        writeln!(content_string, "pub enum {} {{", self.name.sanitized_name)?;
-
-        if  self.default_record.is_none() {
-            writeln!(content_string, "    #[default]")?;
-        }
-
-        for enum_record in self.records.iter() {
-            if let Some(default_value) = &self.default_record {
-                if default_value == enum_record {
-                    writeln!(content_string, "    #[default]")?;
-                }
-            }
-
-            let record_name = SanitizedName::from_type(enum_record);
-
-            if record_name.is_sanitized {
-                writeln!(
-                    content_string,
-                    "    #[serde(rename = \"{}\")]",
-                    record_name.original_name
-                )?
-            }
-            writeln!(content_string, "    {},", record_name.sanitized_name)?;
-        }
-        write!(content_string, "}}\n\n")?;
-
-        Ok(content_string)
-    }
-}
 
 impl GeneratedType {
+    /// Returns the main generated type, plus any additional type generated along the way
+    /// (e.g. an enum for a field whose type is a multi-variant union).
     pub fn generate_schema_struct(
         schema: &Schema,
         settings: &ProcessSettings,
-    ) -> Result<GeneratedType> {
+    ) -> Result<(GeneratedType, Vec<GeneratedType>)> {
         match schema {
             Schema::Record(i) => {
-                Self::treat_record_schema(i, settings).map(GeneratedType::Struct)
+                let (generated_struct, extra_types) = Self::treat_record_schema(i, settings)?;
+                Ok((GeneratedType::Struct(generated_struct), extra_types))
             }
             Schema::Array(_) => todo!(),
             Schema::Map(_) => todo!(),
             Schema::Union(_) => todo!(),
             Schema::Enum(enum_schema) => {
-                Self::treat_enum_schema(enum_schema).map(GeneratedType::Enum)
+                Self::treat_enum_schema(enum_schema).map(|e| (GeneratedType::Enum(e), vec![]))
             }
             Schema::Fixed(_) => todo!(),
             Schema::Decimal(_) => todo!(),
-            Schema::Duration => todo!(),
+            Schema::Duration(_) => todo!(),
             Schema::Ref { .. } => todo!(),
-            _ => Ok(GeneratedType::None),
+            _ => Ok((GeneratedType::None, vec![])),
         }
     }
 
     pub fn treat_enum_schema(enum_schema: &EnumSchema) -> Result<GeneratedEnum> {
-        let schema_name = SanitizedName::from_type(&enum_schema.name.name);
+        let schema_name = SanitizedName::from_type(enum_schema.name.name());
 
         let schema_doc = format_doc(&enum_schema.doc, "")?;
 
@@ -180,21 +89,26 @@ impl GeneratedType {
     pub fn treat_record_schema(
         record_schema: &RecordSchema,
         settings: &ProcessSettings,
-    ) -> Result<GeneratedStruct> {
-        let schema_name = SanitizedName::from_type(&record_schema.name.name);
+    ) -> Result<(GeneratedStruct, Vec<GeneratedType>)> {
+        let schema_name = SanitizedName::from_type(record_schema.name.name());
 
         let schema_doc = format_doc(&record_schema.doc, "")?;
+
+        let mut extra_types: Vec<GeneratedType> = Vec::new();
 
         let fields: Result<Vec<GeneratedStructFields>> = record_schema
             .fields
             .iter()
-            .map(|f| GeneratedStructFields::from(f, &schema_name, settings))
+            .map(|f| GeneratedStructFields::from(f, &schema_name, settings, &mut extra_types))
             .collect();
 
-        Ok(GeneratedStruct {
-            name: schema_name,
-            schema_doc,
-            fields: fields?,
-        })
+        Ok((
+            GeneratedStruct {
+                name: schema_name,
+                schema_doc,
+                fields: fields?,
+            },
+            extra_types,
+        ))
     }
 }

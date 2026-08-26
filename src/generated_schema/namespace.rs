@@ -37,7 +37,7 @@ impl NamespaceInfo
 
     pub fn process_schema(&mut self,schema: &Schema,settings: &ProcessSettings) -> Result<()>
     {   
-        let full_namespace = [settings.default_namespace.to_owned(), schema.namespace().to_owned()]
+        let full_namespace = [settings.default_namespace.to_owned(), schema.namespace().map(|ns| ns.to_string())]
         .into_iter()
         .flatten()
         .collect::<Vec<String>>()
@@ -77,7 +77,7 @@ impl NamespaceInfo
      {
         let unknown_schema_name=Name::new("Unknown_schema_name").unwrap();
         // A changer
-        let content = GeneratedType::generate_schema_struct( schema, settings )
+        let (content, extra_types) = GeneratedType::generate_schema_struct( schema, settings )
         .map_err(|e|format!("{}: {e}", schema
         .name()
         .unwrap_or(&unknown_schema_name)
@@ -87,6 +87,10 @@ impl NamespaceInfo
         }
         else {
             self.generated_types.insert(content.schema_name(), content );
+        }
+
+        for extra_type in extra_types {
+            self.generated_types.insert(extra_type.schema_name(), extra_type);
         }
 
         Ok(())

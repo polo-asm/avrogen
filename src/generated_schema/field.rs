@@ -3,7 +3,7 @@ use crate::Result;
 use apache_avro::schema::*;
 use std::fmt::Write;
 
-use super::{field_default_value::FieldDefault, field_type::*, global::*, ProcessSettings};
+use super::{field_default_value::FieldDefault, field_type::*, global::*, schema::GeneratedType, ProcessSettings};
 
 #[derive(Debug)]
 pub struct GeneratedStructFields {
@@ -29,16 +29,21 @@ impl GeneratedStructFields {
         field: &RecordField,
         structure_name: &SanitizedName,
         settings: &ProcessSettings,
+        extra_types: &mut Vec<GeneratedType>,
     ) -> Result<Self> {
         let field_name = SanitizedName::from_field(&field.name);
-        let field_type = get_field_type(&field.schema, settings)?;
+        let naming = StructFieldName {
+            struct_name: &structure_name.sanitized_name,
+            field_name: &field.name,
+        };
+        let field_type = get_field_type(&field.schema, settings, &naming, extra_types)?;
 
         let doc = format_doc(&field.doc, "    ")?;
         let serde_with_line = get_serde_with(field, settings);
 
         let default = match &field.default {
             None => None,
-            Some(val) => Some(FieldDefault::from(val, &field.schema,settings)?),
+            Some(val) => Some(FieldDefault::from(val, &field.schema,settings,&naming)?),
         };
 
         Ok(GeneratedStructFields {

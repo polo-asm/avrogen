@@ -117,8 +117,14 @@ This tool generate Guid fields which use `uuid` crate. Ensure that you have adde
 cargo add uuid
 ```
 
+## Unions
+
+For union there are 3 cases:
+- 1 value possible, in this case the field will be generated with the type of the value
+- 1 value or null, in this case the field will be generated with an Option<other_type>
+- multiple values, in this case the field will have a newly generated enum type with the name of the field and the possible values as variants.
+
 # limitations
 
-* [ ] Multiple union are not well managed.
 * [ ] Flatten the namespace structure if you don't want to have a module structure
 * [ ] Dates with no lib

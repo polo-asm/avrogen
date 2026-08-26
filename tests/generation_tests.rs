@@ -73,3 +73,15 @@ fn convert_type_with_reference_flat() {
         .add_source("test_schemas/type_by_reference/*.avsc");
     standard_test(avrogen, "type_by_reference", "flat");
 }
+
+#[test]
+fn convert_union_multiple() {
+    let avrogen=Avrogen::new();
+    standard_test(avrogen, "union_multiple", "structured");
+}
+
+#[test]
+fn convert_union_multiple_flat() {
+    let avrogen=Avrogen::new().set_flat_output();
+    standard_test(avrogen, "union_multiple", "flat");
+}
