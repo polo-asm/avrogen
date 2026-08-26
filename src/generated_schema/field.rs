@@ -43,7 +43,7 @@ impl GeneratedStructFields {
 
         let default = match &field.default {
             None => None,
-            Some(val) => Some(FieldDefault::from(val, &field.schema,settings)?),
+            Some(val) => Some(FieldDefault::from(val, &field.schema,settings,&naming)?),
         };
 
         Ok(GeneratedStructFields {

@@ -163,7 +163,7 @@ fn get_field_type_union(
 }
 
 /// Nom donné à la variante de l'enum générée pour un type d'une union.
-fn union_variant_name(schema: &Schema) -> SanitizedName {
+pub(crate) fn union_variant_name(schema: &Schema) -> SanitizedName {
     let name = match schema {
         Schema::Null => "Null".to_string(),
         Schema::Boolean => "Boolean".to_string(),
