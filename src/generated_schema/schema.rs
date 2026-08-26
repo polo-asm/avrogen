@@ -185,6 +185,20 @@ impl GeneratedUnion {
         }
         write!(content_string, "}}\n\n")?;
 
+        // `#[default]` ne fonctionne pas sur une variante portant une donnée : on
+        // implémente donc manuellement `Default` en s'appuyant sur la première variante.
+        if let Some(first_variant) = self.variants.first() {
+            writeln!(content_string, "impl Default for {} {{", self.name.sanitized_name)?;
+            writeln!(content_string, "    fn default() -> Self {{")?;
+            writeln!(
+                content_string,
+                "        {}::{}(Default::default())",
+                self.name.sanitized_name, first_variant.variant_name.sanitized_name
+            )?;
+            writeln!(content_string, "    }}")?;
+            write!(content_string, "}}\n\n")?;
+        }
+
         Ok(content_string)
     }
 }

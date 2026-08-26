@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "namespace": "unions",
+  "name": "Message",
+  "fields": [
+    {"name": "content", "type": ["int", "string", {"type": "record", "name": "Detail", "fields": [{"name": "text", "type": "string"}]}]},
+    {"name": "optional_content", "type": ["null", "int", "string"], "default": null},
+    {"name": "with_default", "type": ["int", "string"], "default": 5}
+  ]
+}
+
