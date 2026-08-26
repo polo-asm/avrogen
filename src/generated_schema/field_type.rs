@@ -49,7 +49,7 @@ pub fn get_field_type(
         Schema::Fixed(fixed_schema) => Ok(format!("[u8; {}]", fixed_schema.size)),
         Schema::Decimal(_) => Ok("apache_avro::Decimal".to_string()),
         Schema::BigDecimal => Ok("apache_avro::BigDecimal".to_string()),
-        Schema::Uuid => Ok("Uuid::uuid".to_string()),
+        Schema::Uuid(_) => Ok("Uuid::uuid".to_string()),
         Schema::Date => Ok(datetime_type.to_string()),
         Schema::TimeMillis => Ok(datetime_type.to_string()),
         Schema::TimeMicros => Ok(datetime_type.to_string()),
@@ -59,7 +59,7 @@ pub fn get_field_type(
         Schema::LocalTimestampMillis => Ok(datetime_type.to_string()),
         Schema::LocalTimestampMicros => Ok(datetime_type.to_string()),
         Schema::LocalTimestampNanos => Ok(datetime_type.to_string()),
-        Schema::Duration => Ok("apache_avro::Duration".to_string()),
+        Schema::Duration(_) => Ok("apache_avro::Duration".to_string()),
         Schema::Ref { name: ref_name } => sanitize_container_name(ref_name, &settings.default_namespace),
     }
 }
@@ -95,7 +95,7 @@ pub fn sanitize_container_name(
         Some(ns) => ns.replace(".", "::") + "::",
     };
 
-    let namespace = match &full_name.namespace {
+    let namespace = match full_name.namespace() {
         None => "".to_string(),
         Some(ns) => {
             ns.split('.')
@@ -106,7 +106,7 @@ pub fn sanitize_container_name(
         }
     };
 
-    let type_sanitized_name = SanitizedName::from_type(full_name.name.as_ref());
+    let type_sanitized_name = SanitizedName::from_type(full_name.name());
 
     Ok(format!(
         "crate::{default_namespace}{namespace}{}",
@@ -172,13 +172,13 @@ pub(crate) fn union_variant_name(schema: &Schema) -> SanitizedName {
         Schema::Array(_) => "Array".to_string(),
         Schema::Map(_) => "Map".to_string(),
         Schema::Union(_) => "Union".to_string(),
-        Schema::Record(record_schema) => record_schema.name.name.to_string(),
-        Schema::Enum(enum_schema) => enum_schema.name.name.to_string(),
-        Schema::Fixed(fixed_schema) => fixed_schema.name.name.to_string(),
-        Schema::Ref { name } => name.name.to_string(),
+        Schema::Record(record_schema) => record_schema.name.name().to_string(),
+        Schema::Enum(enum_schema) => enum_schema.name.name().to_string(),
+        Schema::Fixed(fixed_schema) => fixed_schema.name.name().to_string(),
+        Schema::Ref { name } => name.name().to_string(),
         Schema::Decimal(_) => "Decimal".to_string(),
         Schema::BigDecimal => "BigDecimal".to_string(),
-        Schema::Uuid => "Uuid".to_string(),
+        Schema::Uuid(_) => "Uuid".to_string(),
         Schema::Date => "Date".to_string(),
         Schema::TimeMillis => "TimeMillis".to_string(),
         Schema::TimeMicros => "TimeMicros".to_string(),
@@ -188,7 +188,7 @@ pub(crate) fn union_variant_name(schema: &Schema) -> SanitizedName {
         Schema::LocalTimestampMillis => "LocalTimestampMillis".to_string(),
         Schema::LocalTimestampMicros => "LocalTimestampMicros".to_string(),
         Schema::LocalTimestampNanos => "LocalTimestampNanos".to_string(),
-        Schema::Duration => "Duration".to_string(),
+        Schema::Duration(_) => "Duration".to_string(),
     };
 
     SanitizedName::from_type(&name)

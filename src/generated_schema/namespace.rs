@@ -37,7 +37,7 @@ impl NamespaceInfo
 
     pub fn process_schema(&mut self,schema: &Schema,settings: &ProcessSettings) -> Result<()>
     {   
-        let full_namespace = [settings.default_namespace.to_owned(), schema.namespace().to_owned()]
+        let full_namespace = [settings.default_namespace.to_owned(), schema.namespace().map(|ns| ns.to_string())]
         .into_iter()
         .flatten()
         .collect::<Vec<String>>()

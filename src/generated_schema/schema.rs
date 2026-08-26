@@ -63,14 +63,14 @@ impl GeneratedType {
             }
             Schema::Fixed(_) => todo!(),
             Schema::Decimal(_) => todo!(),
-            Schema::Duration => todo!(),
+            Schema::Duration(_) => todo!(),
             Schema::Ref { .. } => todo!(),
             _ => Ok((GeneratedType::None, vec![])),
         }
     }
 
     pub fn treat_enum_schema(enum_schema: &EnumSchema) -> Result<GeneratedEnum> {
-        let schema_name = SanitizedName::from_type(&enum_schema.name.name);
+        let schema_name = SanitizedName::from_type(enum_schema.name.name());
 
         let schema_doc = format_doc(&enum_schema.doc, "")?;
 
@@ -90,7 +90,7 @@ impl GeneratedType {
         record_schema: &RecordSchema,
         settings: &ProcessSettings,
     ) -> Result<(GeneratedStruct, Vec<GeneratedType>)> {
-        let schema_name = SanitizedName::from_type(&record_schema.name.name);
+        let schema_name = SanitizedName::from_type(record_schema.name.name());
 
         let schema_doc = format_doc(&record_schema.doc, "")?;
 
