@@ -11,8 +11,6 @@ pub struct FieldDefault{
     content: String,
 }
 
-/// Juste utilisé pour produire un nom de type dans les messages d'erreur ci-dessous:
-/// pas de contexte de nommage ni de type généré à enregistrer.
 fn describe_field_type(field_schema: &Schema, settings: &ProcessSettings) -> Result<String> {
     let naming = StructFieldName { struct_name: "", field_name: "" };
     let mut ignored_extra_types = Vec::new();
@@ -34,8 +32,6 @@ impl FieldDefault{
 
 fn get_field_default_value(default_value: &serde_json::Value,field_schema: &Schema,settings: &ProcessSettings,naming: &StructFieldName) -> Result<String> {
 
-    // Union à plusieurs variantes non-null: la valeur générée doit être enveloppée
-    // dans la variante correspondante de l'enum `{Struct}{Field}`.
     if let Schema::Union(union_schema) = field_schema {
         let non_null_variants_count = union_schema.variants().iter().filter(|v| !matches!(v, Schema::Null)).count();
         if non_null_variants_count > 1 {
@@ -60,10 +56,7 @@ fn get_field_default_value(default_value: &serde_json::Value,field_schema: &Sche
     Ok(value_as_string)
 }
 
-/// Le standard Avro impose que la valeur par défaut d'une union corresponde au
-/// type de la première variante déclarée. On génère donc la valeur pour cette
-/// première variante, puis on l'enveloppe dans `{Enum}::{Variant}(...)`
-/// (ou `{Enum}::None` si la première variante est `null`).
+
 fn get_field_default_union_value(default_value: &serde_json::Value,union_schema: &UnionSchema,settings: &ProcessSettings,naming: &StructFieldName) -> Result<String> {
     let allvariants = union_schema.variants();
     let first_variant = &allvariants[0];

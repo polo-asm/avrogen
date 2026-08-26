@@ -5,8 +5,8 @@ use crate::generated_schema::ProcessSettings;
 use super::global::SanitizedName;
 use super::schema::{GeneratedType, GeneratedUnion, GeneratedUnionVariant};
 
-/// Identifie le champ (structure + nom du champ) pour lequel un type est généré.
-/// Sert notamment à nommer les enums générées pour les unions multiples: `{Struct}{Field}`.
+/// Identifies the field (struct + field name) a type is generated for.
+/// Used in particular to name the enums generated for multi-variant unions: `{Struct}{Field}`.
 pub struct StructFieldName<'a> {
     pub struct_name: &'a str,
     pub field_name: &'a str,
@@ -141,9 +141,6 @@ fn get_field_type_union(
         }
     }
 
-    // Plusieurs variantes (au moins 3 au total, ou 2 variantes non-null) : on génère
-    // une enum dédiée `{Struct}{Field}`. Si `null` est présente, elle devient une
-    // variante unitaire `None` de cette enum (pas de `Option<...>`).
     let mut union_variants = Vec::new();
     for variant_schema in allvariants.iter() {
         if let Schema::Null = variant_schema {
@@ -162,7 +159,6 @@ fn get_field_type_union(
     Ok(union_type_name)
 }
 
-/// Nom donné à la variante de l'enum générée pour un type d'une union.
 pub(crate) fn union_variant_name(schema: &Schema) -> SanitizedName {
     let name = match schema {
         Schema::Null => "Null".to_string(),

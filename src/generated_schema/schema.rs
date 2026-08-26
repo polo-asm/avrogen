@@ -1,8 +1,13 @@
+mod struct_;
+mod enum_;
+mod union;
+
+pub use enum_::GeneratedEnum;
+pub use struct_::GeneratedStruct;
+pub use union::{union_type_name, GeneratedUnion, GeneratedUnionVariant};
+
 use crate::Result;
 use apache_avro::{schema::*, Schema};
-use std::fmt::Write;
-use std::string::*;
-use std::*;
 use crate::generated_schema::ProcessSettings;
 use super::field::GeneratedStructFields;
 use super::global::*;
@@ -37,202 +42,10 @@ impl GeneratedType {
     }
 }
 
-#[derive(Debug)]
-pub struct GeneratedStruct {
-    name: SanitizedName,
-
-    schema_doc: String,
-
-    fields: Vec<GeneratedStructFields>,
-}
-
-impl GeneratedStruct {
-    pub fn produce_content(&self) -> Result<String> {
-        let mut content_string = self.schema_doc.to_owned();
-        writeln!(
-            content_string,
-            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]"
-        )?;
-        writeln!(content_string, "#[serde(default)]")?;
-        if self.name.is_sanitized {
-            writeln!(
-                content_string,
-                "#[serde(rename = \"{}\")]",
-                self.name.original_name
-            )?
-        }
-        writeln!(content_string, "pub struct {} {{", self.name.sanitized_name)?;
-
-        for field in self.fields.iter() {
-            let field_declaration = field.write_struct_declaration_content()?;
-            content_string.push_str(&field_declaration);
-        }
-        write!(content_string, "}}\n\n")?;
-
-        write!(content_string, "impl {} {{", self.name.sanitized_name)?;
-
-        if self.fields.iter().any(|f| f.has_default()) {
-            for field in self.fields.iter() {
-                let field_default_method = field.write_struct_default_method_content()?;
-                if let Some(field_default_method) = field_default_method {
-                    content_string.push_str(&field_default_method);
-                }
-            }
-        }
-        write!(content_string, "}}\n\n")?;
-
-        Ok(content_string)
-    }
-}
-
-#[derive(Debug)]
-pub struct GeneratedEnum {
-    name: SanitizedName,
-
-    schema_doc: String,
-
-    default_record: Option<String>,
-
-    records: Vec<String>,
-}
-
-impl GeneratedEnum {
-    pub fn produce_content(&self) -> Result<String> {
-        let mut content_string = self.schema_doc.to_owned();
-        writeln!(
-            content_string,
-            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize, Default)]"
-        )?;
-
-        if self.name.is_sanitized {
-            writeln!(
-                content_string,
-                "#[serde(rename = \"{}\")]",
-                self.name.original_name
-            )?
-        }
-        writeln!(content_string, "pub enum {} {{", self.name.sanitized_name)?;
-
-        if  self.default_record.is_none() {
-            writeln!(content_string, "    #[default]")?;
-        }
-
-        for enum_record in self.records.iter() {
-            if let Some(default_value) = &self.default_record {
-                if default_value == enum_record {
-                    writeln!(content_string, "    #[default]")?;
-                }
-            }
-
-            let record_name = SanitizedName::from_type(enum_record);
-
-            if record_name.is_sanitized {
-                writeln!(
-                    content_string,
-                    "    #[serde(rename = \"{}\")]",
-                    record_name.original_name
-                )?
-            }
-            writeln!(content_string, "    {},", record_name.sanitized_name)?;
-        }
-        write!(content_string, "}}\n\n")?;
-
-        Ok(content_string)
-    }
-}
-
-#[derive(Debug)]
-pub enum GeneratedUnionVariant {
-    /// Variante unitaire (sans donnée), utilisée pour représenter `null`.
-    Unit(SanitizedName),
-    /// Variante portant une donnée du type Rust indiqué.
-    Tuple(SanitizedName, String),
-}
-
-#[derive(Debug)]
-pub struct GeneratedUnion {
-    name: SanitizedName,
-
-    variants: Vec<GeneratedUnionVariant>,
-}
-
-impl GeneratedUnion {
-    pub fn new(struct_name: &str, field_name: &str, variants: Vec<GeneratedUnionVariant>) -> Self {
-        GeneratedUnion {
-            name: union_type_name(struct_name, field_name),
-            variants,
-        }
-    }
-
-    pub fn type_name(&self) -> &str {
-        &self.name.sanitized_name
-    }
-
-    pub fn produce_content(&self) -> Result<String> {
-        let mut content_string = String::new();
-        writeln!(
-            content_string,
-            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize)]"
-        )?;
-        writeln!(content_string, "#[serde(untagged)]")?;
-        writeln!(content_string, "pub enum {} {{", self.name.sanitized_name)?;
-
-        for variant in self.variants.iter() {
-            match variant {
-                GeneratedUnionVariant::Unit(variant_name) => writeln!(
-                    content_string,
-                    "    {},",
-                    variant_name.sanitized_name
-                )?,
-                GeneratedUnionVariant::Tuple(variant_name, type_name) => writeln!(
-                    content_string,
-                    "    {}({}),",
-                    variant_name.sanitized_name, type_name
-                )?,
-            }
-        }
-        write!(content_string, "}}\n\n")?;
-
-        // `#[default]` ne fonctionne pas sur une variante portant une donnée : on
-        // implémente donc manuellement `Default` en s'appuyant sur la première variante.
-        if let Some(first_variant) = self.variants.first() {
-            writeln!(content_string, "impl Default for {} {{", self.name.sanitized_name)?;
-            writeln!(content_string, "    fn default() -> Self {{")?;
-            match first_variant {
-                GeneratedUnionVariant::Unit(variant_name) => writeln!(
-                    content_string,
-                    "        {}::{}",
-                    self.name.sanitized_name, variant_name.sanitized_name
-                )?,
-                GeneratedUnionVariant::Tuple(variant_name, _) => writeln!(
-                    content_string,
-                    "        {}::{}(Default::default())",
-                    self.name.sanitized_name, variant_name.sanitized_name
-                )?,
-            }
-            writeln!(content_string, "    }}")?;
-            write!(content_string, "}}\n\n")?;
-        }
-
-        Ok(content_string)
-    }
-}
-
-/// Nommage des enums générées pour les unions Avro multiples: {Struct}{Field}
-pub fn union_type_name(struct_name: &str, field_name: &str) -> SanitizedName {
-    let field_pascal = heck::ToUpperCamelCase::to_upper_camel_case(field_name);
-    let combined = format!("{struct_name}{field_pascal}");
-
-    SanitizedName {
-        sanitized_name: combined.clone(),
-        original_name: combined,
-        is_sanitized: false,
-    }
-}
 
 impl GeneratedType {
-    /// Retourne le type principal généré, ainsi que d'éventuels types additionnels
-    /// générés au passage (ex: l'enum d'un champ dont le type est une union multiple).
+    /// Returns the main generated type, plus any additional type generated along the way
+    /// (e.g. an enum for a field whose type is a multi-variant union).
     pub fn generate_schema_struct(
         schema: &Schema,
         settings: &ProcessSettings,

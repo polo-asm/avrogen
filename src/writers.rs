@@ -17,7 +17,6 @@ pub fn write(output_folder: PathBuf,root_namespace: NamespaceInfo,flat_output: b
         write_to_flat_file(output_folder, root_namespace)?;
     }
     else{
-        // Currently only one writer exist
         write_to_structured_files(output_folder, root_namespace)?;
     }
     

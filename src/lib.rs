@@ -71,8 +71,9 @@ pub struct Avrogen {
 
     log_level: Option<LevelFilter>,
 
-    #[arg(long)]
-    flat_ouptut: bool,
+    /// Kept `flat-ouptut` as an alias for backward compatibility with the previous (misspelled) flag name.
+    #[arg(long, alias = "flat-ouptut")]
+    flat_output: bool,
 
     /// Allow to choose which crate is used to generate date/time fields (`chrono` or `jiff`).
     #[arg(long, value_enum, default_value_t=DateLibrary::Chrono, aliases=&["date-library"])]
@@ -99,7 +100,7 @@ impl Avrogen {
             output_folder: PathBuf::from("./"),
             verbose: Verbosity::default(),
             log_level: None,
-            flat_ouptut: false,
+            flat_output: false,
             date_library: DateLibrary::default(),
             #[cfg( feature = "schema_registry")]
             schema_registry_source: None,
@@ -220,7 +221,7 @@ impl Avrogen {
     /// builder.set_flat_output();
     /// ```
     pub fn set_flat_output(mut self) -> Self {
-        self.flat_ouptut= true;
+        self.flat_output = true;
         self
     }
 
@@ -352,7 +353,7 @@ impl Avrogen {
 
         info!("4) Write to files");
 
-        writers::write(self.output_folder, root_ns, self.flat_ouptut)?;
+        writers::write(self.output_folder, root_ns, self.flat_output)?;
 
         info!("Done!");
 
