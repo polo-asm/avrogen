@@ -1,11 +1,9 @@
-use itertools::Itertools;
-use log::debug;
-use std::fs::{self, File};
 use std::io::Write;
 use std::path::PathBuf;
 
 use crate::generated_schema::namespace::NamespaceInfo;
 use crate::Result;
+use super::{ensure_folder_exists, create_truncated_file, sorted_children, write_sorted_generated_types};
 
 /*
 Return the module file name. This module can contains:
@@ -19,11 +17,7 @@ fn module_filename(parent_folder: PathBuf, namespace: &NamespaceInfo) -> PathBuf
 }
 
 pub fn write_to_structured_files(parent_folder: PathBuf, namespace: NamespaceInfo) -> Result<()> {
-    if !parent_folder.exists() {
-        fs::create_dir_all(parent_folder.as_path())?;
-
-        debug!("Folder created: {}", parent_folder.display());
-    }
+    ensure_folder_exists(&parent_folder)?;
 
     let file_path = module_filename(parent_folder.to_owned(), &namespace);
 
@@ -47,19 +41,10 @@ pub fn write_to_structured_files(parent_folder: PathBuf, namespace: NamespaceInf
 }
 
 fn create_current_file(namespace: &NamespaceInfo, file_path: PathBuf) -> Result<()> {
-    debug!(
-        "Will create file: {}",
-        file_path.clone().into_os_string().into_string().unwrap()
-    );
-
-    let mut file = File::options()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open(file_path)?;
+    let mut file = create_truncated_file(file_path)?;
 
     if !namespace.children.is_empty() {
-        for (_, child) in namespace.children.iter().sorted_by_key(|n|n.0) {
+        for (_, child) in sorted_children(namespace) {
             write!(
                 file,
                 "pub mod {};\n",
@@ -70,9 +55,7 @@ fn create_current_file(namespace: &NamespaceInfo, file_path: PathBuf) -> Result<
         file.write_all("\n".as_bytes())?;
     }
 
-    for (_, content) in namespace.generated_types.iter().sorted_by_key(|p| p.0) {
-        file.write_all(content.produce_content()?.as_bytes())?;
-    }
+    write_sorted_generated_types(&mut file, 0, namespace)?;
 
     Ok(())
 }

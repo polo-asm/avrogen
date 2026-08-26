@@ -1,11 +1,10 @@
 use std::path::PathBuf;
-use indent::indent_all_by;
-use itertools::Itertools;
 use log::debug;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
 use crate::generated_schema::namespace::NamespaceInfo;
 use crate::Result;
+use super::{ensure_folder_exists, create_truncated_file, sorted_children, write_sorted_generated_types};
 
 pub fn write_to_flat_file(parent_folder: PathBuf, namespace: NamespaceInfo) -> Result<()> {
 
@@ -21,33 +20,14 @@ pub fn write_to_flat_file(parent_folder: PathBuf, namespace: NamespaceInfo) -> R
 
 fn create_file(parent_folder: PathBuf, namespace: &NamespaceInfo) -> Result<File> {
 
-    if !parent_folder.exists() {
-        fs::create_dir_all(parent_folder.as_path())?;
-
-        debug!("Folder created: {}", parent_folder.display());
-    }
-
-    //let file_path = parent_folder
-    //    .join(&namespace.name.sanitized_name)
-    //    .with_extension("rs");
+    ensure_folder_exists(&parent_folder)?;
 
     let file_path = parent_folder
         .join("mod")
         .with_extension("rs");        
     debug!("namespace name: {}", &namespace.name.sanitized_name);
-    
-    debug!(
-        "Will create file: {}",
-        file_path.clone().into_os_string().into_string().unwrap()
-    );
 
-    let file = File::options()
-        .create(true)
-        .write(true)
-        .truncate(true)
-        .open(file_path)?;
-
-    Ok(file)
+    create_truncated_file(file_path)
 }
 
 fn write_namespace(mut file:&File,indent: usize,namespace: &NamespaceInfo) -> Result<()>
@@ -56,7 +36,7 @@ fn write_namespace(mut file:&File,indent: usize,namespace: &NamespaceInfo) -> Re
         let indented_prefix= " ".repeat(indent);
         let sub_indent = indent+4;
 
-        for (_, child) in namespace.children.iter().sorted_by_key(|n|n.0) {
+        for (_, child) in sorted_children(namespace) {
             write!(
                 file,
                 "{}pub mod {} {{\n\n",
@@ -70,14 +50,7 @@ fn write_namespace(mut file:&File,indent: usize,namespace: &NamespaceInfo) -> Re
         }
     }
 
-    for (_, content) in namespace.generated_types.iter().sorted_by_key(|p| p.0) {
-        
-        let content=content.produce_content()?;
-        
-        let content= indent_all_by(indent, content);
-
-        file.write_all(content.as_bytes())?;
-    }
+    write_sorted_generated_types(&mut file, indent, namespace)?;
 
     Ok(())
 }
