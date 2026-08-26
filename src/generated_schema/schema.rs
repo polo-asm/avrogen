@@ -14,6 +14,8 @@ pub enum GeneratedType {
     Enum(GeneratedEnum),
 
     Struct(GeneratedStruct),
+
+    Union(GeneratedUnion),
 }
 
 impl GeneratedType {
@@ -21,6 +23,7 @@ impl GeneratedType {
         match self {
             GeneratedType::Enum(x) => x.produce_content(),
             GeneratedType::Struct(x) => x.produce_content(),
+            GeneratedType::Union(x) => x.produce_content(),
             GeneratedType::None => Ok("".to_string()),
         }
     }
@@ -28,6 +31,7 @@ impl GeneratedType {
         match self {
             GeneratedType::Enum(x) => x.name.original_name.to_owned(),
             GeneratedType::Struct(x) => x.name.original_name.to_owned(),
+            GeneratedType::Union(x) => x.name.original_name.to_owned(),
             GeneratedType::None => "".to_owned(),
         }
     }
@@ -134,6 +138,66 @@ impl GeneratedEnum {
         write!(content_string, "}}\n\n")?;
 
         Ok(content_string)
+    }
+}
+
+#[derive(Debug)]
+pub struct GeneratedUnionVariant {
+    pub variant_name: SanitizedName,
+
+    pub type_name: String,
+}
+
+#[derive(Debug)]
+pub struct GeneratedUnion {
+    name: SanitizedName,
+
+    variants: Vec<GeneratedUnionVariant>,
+}
+
+impl GeneratedUnion {
+    pub fn new(struct_name: &str, field_name: &str, variants: Vec<GeneratedUnionVariant>) -> Self {
+        GeneratedUnion {
+            name: union_type_name(struct_name, field_name),
+            variants,
+        }
+    }
+
+    pub fn type_name(&self) -> &str {
+        &self.name.sanitized_name
+    }
+
+    pub fn produce_content(&self) -> Result<String> {
+        let mut content_string = String::new();
+        writeln!(
+            content_string,
+            "#[derive(Debug, PartialEq, Clone, serde::Deserialize, serde::Serialize)]"
+        )?;
+        writeln!(content_string, "#[serde(untagged)]")?;
+        writeln!(content_string, "pub enum {} {{", self.name.sanitized_name)?;
+
+        for variant in self.variants.iter() {
+            writeln!(
+                content_string,
+                "    {}({}),",
+                variant.variant_name.sanitized_name, variant.type_name
+            )?;
+        }
+        write!(content_string, "}}\n\n")?;
+
+        Ok(content_string)
+    }
+}
+
+/// Nommage des enums générées pour les unions Avro multiples: {Struct}{Field}
+pub fn union_type_name(struct_name: &str, field_name: &str) -> SanitizedName {
+    let field_pascal = heck::ToUpperCamelCase::to_upper_camel_case(field_name);
+    let combined = format!("{struct_name}{field_pascal}");
+
+    SanitizedName {
+        sanitized_name: combined.clone(),
+        original_name: combined,
+        is_sanitized: false,
     }
 }
 
