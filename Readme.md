@@ -117,6 +117,12 @@ This tool generate Guid fields which use `uuid` crate. Ensure that you have adde
 cargo add uuid
 ```
 
+## Bytes
+`bytes` fields (and `["null", "bytes"]` unions) are generated as `Vec<u8>` / `Option<Vec<u8>>` with the `#[serde(with = "serde_bytes")]` attribute. Ensure that you have added the `serde_bytes` crate in your project with the command:
+```shell
+cargo add serde_bytes
+```
+
 ## Unions
 
 For union there are 3 cases:
