@@ -8,8 +8,10 @@ pub struct User {
     pub favorite_number: i32,
     #[serde(default = "User::default_likes_pizza")]
     pub likes_pizza: bool,
+    #[serde(with = "serde_bytes")]
     #[serde(default = "User::default_b")]
     pub b: Vec<u8>,
+    #[serde(with = "serde_bytes")]
     #[serde(default = "User::default_union_b")]
     pub union_b: Option<Vec<u8>>,
     #[serde(rename = "A_Bool")]
