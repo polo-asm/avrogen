@@ -103,8 +103,19 @@ impl GeneratedStructFields {
     }
 }
 
+fn is_optional_bytes(union_schema: &UnionSchema) -> bool {
+    let variants = union_schema.variants();
+    variants.len() == 2
+        && variants.iter().any(|s| matches!(s, Schema::Null))
+        && variants.iter().any(|s| matches!(s, Schema::Bytes))
+}
+
 fn get_serde_with(field: &RecordField, settings: &ProcessSettings) -> Option<&'static str> {
     match (settings.date_library, &field.schema) {
+        (_, Schema::Bytes) => Some("#[serde(with = \"serde_bytes\")]"),
+        (_, Schema::Union(union_schema)) if is_optional_bytes(union_schema) => {
+            Some("#[serde(with = \"serde_bytes\")]")
+        }
         (DateLibrary::Chrono, Schema::TimeMillis | Schema::TimestampMillis | Schema::LocalTimestampMillis) => {
             Some("#[serde(with = \"chrono::naive::serde::ts_milliseconds\")]")
         }
